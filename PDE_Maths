@@ -1,0 +1,349 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{float}
+\title{Projet Cpp Maths}
+\author{julien.g.baudin@gmail.com }
+\date{November 2019}
+
+\begin{document}
+
+\maketitle
+
+\chapter*{Introduction}
+
+    We work with the Black-Scholes Partial Differential Equation to which we apply the variable change x=log(S):
+    
+    \begin{equation}
+    0 = -\frac{\partial f}{\partial t}(x,t)-\frac{1}{2} \sigma^2 \frac{\partial^2 f}{\partial x^2}(x,t) + (\frac{1}{2} \sigma^2 - r)\frac{\partial f}{\partial x}(x,t) + rf(x,t)
+    \label{BS_PDE_eq}
+    \end{equation}
+    
+    \noindent With the final condition $f(x,T) = V(x) = V(e^S)$ where V is the payoff.\\
+    
+    \noindent Starting from the option value at maturity, a common method to solve this PDE and retrieve the price of the option today is to use finite differences to approximate the derivatives on a discrete mesh. We are going to solve the Crank-Nicholson scheme which merges both implicit and explicit methods to combine their properties.
+
+\chapter*{Working out the maths}
+
+\section*{Solving the problem}
+
+    First, let us define:
+    
+    \begin{equation}
+        L_i^{n}= -\frac{1}{2} \sigma^2 \frac{\partial^2 f}{\partial x^2}(x,t) + (\frac{1}{2} \sigma^2 - r)\frac{\partial f}{\partial x}(x,t) + rf(x,t)
+        \label{L_eq}
+    \end{equation}
+    
+    \noindent The Delta Greek equals:
+    
+    \begin{equation}
+        \frac{\partial f}{\partial x}(x_i,t_n)=\frac{f_{i+1}^n - f_{i-1}^n}{2dx}
+    \label{Delta_eq}
+    \end{equation}
+    
+    \noindent The Gamma Greek equals:
+    
+    \begin{equation}
+        \frac{\partial^2 f}{\partial x^2}(x_i,t_n)=\frac{f_{i+1}^n + f_{i-1}^n-2f_{i}^n}{{dx}^2}
+    \label{Gamma_eq}
+    \end{equation}
+    
+    \noindent Then, the Theta Greek equals:
+    
+    \begin{equation}
+        \frac{\partial f}{\partial t}(x_i,t_n)=\frac{f_{i}^{n+1} +f_{i}^{n}}{dt}
+    \label{Theta_eq}
+    \end{equation}    
+    
+    
+    \noindent For each step on the discrete mesh, solving the Crank Nicholson scheme comes to solve the following equation:
+    
+    \begin{equation}
+        \frac{f_i^{n+1}-f_i^{n}}{dt}= \theta L_i^n + (1-\theta)L_i^{n+1}
+    \label{CN_eq}
+    \end{equation}
+
+    \noindent Where $dt$ is the time step on the mesh, index $n$ stands for the time step. Index $i$ stands for the price step for the underlying asset, and $dx$ is the price step on the mesh. $\theta$ is an input defining the contribution of both implicit and explicit schemes to the Crank-Nicholson one.\\
+    
+    \noindent Substituting equations \ref{L_eq}, \ref{Delta_eq} and \ref{Gamma_eq} into \ref{CN_eq}, one can obtain:
+    
+    \begin{equation}
+        \begin{split}
+            f_i^{n+1}-f_i^{n} & = dt\theta(-\frac{1}{2} \sigma^2 \frac{f_{i+1}^n + f_{i-1}^n-2f_{i}^n}{{dx}^2} + (\frac{1}{2} \sigma^2 - r)\frac{f_{i+1}^n - f_{i-1}^n}{2dx} + rf_i^n) \\
+            & + dt(1-\theta)(-\frac{1}{2} \sigma^2 \frac{f_{i+1}^{n+1} + f_{i-1}^{n+1}-2f_{i}^{n+1}}{{dx}^2} + (\frac{1}{2} \sigma^2 - r)\frac{f_{i+1}^{n+1} - f_{i-1}^{n+1}}{2dx} + rf_i^{n+1})
+        \label{CN_eq_2}
+        \end{split}
+    \end{equation}
+    
+    \noindent After reorganising the right side of equation \ref{CN_eq_2}, let us denote:
+    
+    \begin{equation}
+        \begin{split}
+            A_i^n & = f_{i+1}^{n}(dt\theta(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} - \frac{r}{2{dx}}) \\
+            & + f_{i-1}^{n}(dt\theta(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} + \frac{r}{2{dx}}) \\
+            & + f_{i}^{n}(dt\theta(\frac{\sigma^2}{{dx}^2}+ r))
+        \label{CN_eq_3}
+        \end{split}
+    \end{equation}
+    
+    \begin{equation}
+        \begin{split}
+            A_i^{n+1} & = f_{i+1}^{n}(dt(1-\theta)(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} - \frac{r}{2{dx}})) \\
+            & + f_{i-1}^{n}(dt(1-\theta)(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} + \frac{r}{2{dx}})) \\
+            & + f_{i}^{n}(dt(1-\theta)(\frac{\sigma^2}{{dx}^2}+ r))
+        \label{CN_eq_4}
+        \end{split}
+    \end{equation}
+    
+    \noindent Let us denote:
+    
+    \begin{align*} 
+        \alpha^n &=  dt\theta(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} - \frac{r}{2{dx}}) \\ 
+        \beta^n &= dt\theta(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} + \frac{r}{2{dx}}) \\
+        \gamma^n &= dt\theta(\frac{\sigma^2}{{dx}^2}+ r)
+    \end{align*}
+    
+    \begin{align*} 
+        \alpha^{n+1} &=  dt(1-\theta)(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} - \frac{r}{2{dx}}) \\ 
+        \beta^{n+1} &= dt(1-\theta)(\frac{-\sigma^2}{2{dx}^2}+\frac{\sigma^2}{4{dx}^2} + \frac{r}{2{dx}}) \\
+        \gamma^{n+1} &= dt(1-\theta)(\frac{\sigma^2}{{dx}^2}+ r)
+    \end{align*}
+    
+
+\noindent One can rewrite equation \ref{CN_eq}:
+
+    \begin{equation}
+       A_i^n + f_i^{n}=  f_i^{n+1} - A_i^{n+1}
+    \label{CN_eq_5}
+    \end{equation}
+    
+    \noindent Substituting $A^n$ and $A^{n+1}$ yields:
+    \begin{equation}
+       f_{i+1}^{n}\alpha^n + f_{i-1}^{n}\beta^n + f_{i}^{n}\gamma^n + f_{i}^{n}=  f_i^{n+1} - (f_{i+1}^{n+1}\alpha^{n+1} + f_{i-1}^{n+1}\beta^{n+1} + f_{i}^{n+1}\gamma^{n+1})
+    \label{CN_eq_6}
+    \end{equation}
+    
+    \noindent Simplifying equation \ref{CN_eq_6}, one can obtain:
+    \begin{equation}
+       f_{i+1}^{n}\alpha^n + f_{i-1}^{n}\beta^n + f_{i}^{n}(\gamma^n +1)= f_{i+1}^{n+1}(-\alpha^{n+1}) + f_{i-1}^{n+1}(-\beta^{n+1}) +  f_{i}^{n+1}(1-\gamma^{n+1})
+    \label{CN_eq_7}
+    \end{equation}    
+    
+    \noindent Which implies we must solve the following matrix system to find $f_i^n$ for all $i \in \{0, 1,...,N\}$:
+    
+    \begin{equation}
+    \begin{split}
+        
+        \begin{pmatrix}
+            \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & \cdots & \cdots & 0 \\
+            \beta^{n} & \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & \cdots & 0 \\
+            0 & \beta^{n} & \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & 0 \\
+            0 & 0 & \ddots & \ddots & \ddots & \ddots & \vdots \\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots &  0\\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots & \alpha^{n}\\
+            0 & 0 & \cdots &\cdots & 0 & \beta^{n} & \gamma^{n}+1 
+        \end{pmatrix}
+        \begin{pmatrix}
+            f_1^n \\
+            f_2^n \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            \vdots \\
+            f_{N-1}^n 
+        \end{pmatrix}
+        + 
+        \begin{pmatrix}
+            \beta^n f_0^n \\
+            0 \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            0 \\
+            \alpha^n f_{N}^n 
+        \end{pmatrix}
+        = 
+        \begin{pmatrix}
+            -\gamma^{n+1} + 1 & -\alpha^{n+1} & 0 & \cdots & \cdots & \cdots & 0 \\
+            -\beta^{n+1} & -\gamma^{n+1}+1 & -\alpha^{n+1} & 0 & \cdots & \cdots & 0 \\
+            0 & -\beta^{n+1} & -\gamma^{n+1}+1 & -\alpha^{n+1} & 0 & \cdots & 0 \\
+            0 & 0 & \ddots & \ddots & \ddots & \ddots & \vdots \\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots &  0\\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots & \alpha^{n+1}\\
+            0 & 0 & \cdots &\cdots & 0 & \beta^{n+1} & \gamma^{n+1}+1 
+        \end{pmatrix}
+        \begin{pmatrix}
+            f_1^{n+1} \\
+            f_2^{n+1} \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            \vdots \\
+            f_{N-1}^{n+1} 
+        \end{pmatrix}
+        + 
+        \begin{pmatrix}
+            -\beta^{n+1} f_0^{n+1} \\
+            0 \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            0 \\
+            -\alpha^{n+1} f_{N}^{n+1} 
+        \end{pmatrix}
+    \end{split}
+        \label{CN_eq_8}
+    \end{equation}
+    
+    \noindent For the points on the mesh border, we need to set boundary conditions. One can either set values of $f$ at the boundaries, or can impose values for the derivatives. The former approach is called Dirichlet conditions, the latter is the Neumann conditions.
+
+\section*{Dirichlet Boundary Conditions}
+
+\noindent We impose values to $f_0^n $ and $f_N^n$ $\forall n \in \{0, 1,...,T\}$. Let us say $f_0^n = l$ and $f_0^n = h$, substituting in equation 13 yields:
+
+    \begin{equation}
+    \begin{split}
+        
+        \begin{pmatrix}
+            \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & \cdots & \cdots & 0 \\
+            \beta^{n} & \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & \cdots & 0 \\
+            0 & \beta^{n} & \gamma^{n}+1 & \alpha^{n} & 0 & \cdots & 0 \\
+            0 & 0 & \ddots & \ddots & \ddots & \ddots & \vdots \\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots &  0\\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots & \alpha^{n}\\
+            0 & 0 & \cdots &\cdots & 0 & \beta^{n} & \gamma^{n}+1 
+        \end{pmatrix}
+        \begin{pmatrix}
+            f_1^n \\
+            f_2^n \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            \vdots \\
+            f_{N-1}^n 
+        \end{pmatrix}
+        + 
+        \begin{pmatrix}
+            \beta^n l \\
+            0 \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            0 \\
+            \alpha^n h 
+        \end{pmatrix}
+        = 
+        \begin{pmatrix}
+            -\gamma^{n+1} + 1 & -\alpha^{n+1} & 0 & \cdots & \cdots & \cdots & 0 \\
+            -\beta^{n+1} & -\gamma^{n+1}+1 & -\alpha^{n+1} & 0 & \cdots & \cdots & 0 \\
+            0 & -\beta^{n+1} & -\gamma^{n+1}+1 & -\alpha^{n+1} & 0 & \cdots & 0 \\
+            0 & 0 & \ddots & \ddots & \ddots & \ddots & \vdots \\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots &  0\\
+            \vdots  & \vdots  & \ddots &  \ddots &  \ddots & \ddots & \alpha^{n+1}\\
+            0 & 0 & \cdots &\cdots & 0 & \beta^{n+1} & \gamma^{n+1}+1 
+        \end{pmatrix}
+        \begin{pmatrix}
+            f_1^{n+1} \\
+            f_2^{n+1} \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            \vdots \\
+            f_{N-1}^{n+1} 
+        \end{pmatrix}
+        + 
+        \begin{pmatrix}
+            -\beta^{n+1} l \\
+            0 \\
+            \vdots  \\
+            \vdots  \\
+            \vdots \\
+            0 \\
+            -\alpha^{n+1} h
+        \end{pmatrix}
+        \end{split}
+        \label{CN_eq_9}
+    \end{equation}
+    
+    \begin{equation}
+        \underset{(N-1)\times (N-1)}{A} \underset{(N-1)\times 1}{X^n} + \underset{(N-1)\times 1}{C^n}
+        =
+         \underset{(N-1)\times (N-1)}{B} \underset{(N-1)\times 1}{X^{n+1}} + \underset{(N-1)\times 1}{C^{n+1}}
+    \end{equation}
+    
+    \noindent It remains to isolate the unknown vector $X^n$ to solve this system of linear equations:
+    
+    \begin{equation}
+         \underset{(N-1)\times 1}{X^n}
+        = \underset{(N-1)\times (N-1)}{A^{-1}}(
+         \underset{(N-1)\times (N-1)}{B} \underset{(N-1)\times 1}{X^{n+1}} + \underset{(N-1)\times 1}{C^{n+1}}-\underset{(N-1)\times 1}{C^n})
+    \label{Solving_eq}
+    \end{equation}
+
+\section*{Neumann Boundary Conditions}
+
+\noindent With Neumann conditions, we impose values for the first and second-order derivatives for all $n$ in $\{0, 1,...,T\}$.
+
+    \begin{equation}
+        \frac{\partial f}{\partial x}(x_0,t_n)= k_1 \\
+ 
+    \end{equation}
+    \begin{equation}
+        \frac{\partial f}{\partial x}(x_N,t_n)= k_3 \\
+
+    \end{equation}
+    
+    \begin{equation}
+        \frac{\partial^2 f}{\partial x^2}(x_0,t_n)= k_2
+
+    \end{equation}
+    \begin{equation}
+        \frac{\partial^2 f}{\partial x^2}(x_N,t_n)= k_4
+
+    \end{equation}
+    
+    \noindent Then, for $f_0^n$, substituting constants $k_1$ and $k_2$ into equation \ref{CN_eq}, one obtains:
+    
+    \begin{equation}
+        \begin{split}
+            f_0^{n+1}-f_0^{n} & = dt\theta(-\frac{1}{2} \sigma^2 k_1 + (\frac{1}{2} \sigma^2 - r)k_2 + rf_0^n \\
+            & + dt(1-\theta)(-\frac{1}{2} \sigma^2 k_1 + (\frac{1}{2} \sigma^2 - r)k_2 + rf_0^{n+1})
+        \label{Neumann_eq_1} 
+        \end{split}
+    \end{equation}
+    
+
+    
+    \noindent with equation \ref{Neumann_eq_1}, one obtains:
+    
+    \begin{equation}
+            f_0^{n} = \frac{f_0^{n+1} - dt\theta(-\frac{1}{2} \sigma^2 k_1 + (\frac{1}{2} \sigma^2 - r)k_2) - dt(1-\theta)(-\frac{1}{2} \sigma^2 k_1 + (\frac{1}{2} \sigma^2 - r)k_2 + rf_0^{n+1})}{(1+dt\theta r)} 
+    \label{Neumann_eq_2} 
+    \end{equation}
+
+    \begin{equation}
+            f_0^{n} = \frac{f_0^{n+1} - dt(-\frac{1}{2} \sigma^2 k_1 + (\frac{1}{2} \sigma^2 - r)k_2 +(1-\theta) rf_0^{n+1})}{(1+dt\theta r)} 
+    \label{Neumann_eq_3} 
+    \end{equation}   
+    
+    \noindent Same idea with $f_N^n$, replacing derivatives by constants $k_3$ and $k_4$, it yields:
+    
+    \begin{equation}
+        \begin{split}
+            f_N^{n+1}-f_N^{n} & = dt\theta(-\frac{1}{2} \sigma^2 k_3 + (\frac{1}{2} \sigma^2 - r)k_4 + rf_N^n \\
+            & + dt(1-\theta)(-\frac{1}{2} \sigma^2 k_3 + (\frac{1}{2} \sigma^2 - r)k_4 + rf_N^{n+1})
+        \label{Neumann_eq_4}
+        \end{split}
+    \end{equation}
+    
+    \noindent Which leads to the same type of result:
+    \begin{equation}
+            f_N^{n} = \frac{f_N^{n+1} - dt(-\frac{1}{2} \sigma^2 k_3 + (\frac{1}{2} \sigma^2 - r)k_4 +(1-\theta) rf_0^{n+1})}{(1+dt\theta r)} 
+    \label{Neumann_eq_5} 
+    \end{equation}   
+
+    \noindent We can now substitute equations \ref{Neumann_eq_3} and \ref{Neumann_eq_5} into equation 13 and solve this matrix system just like we did in equation \ref{Solving_eq}.
+\end{document}
+
+
