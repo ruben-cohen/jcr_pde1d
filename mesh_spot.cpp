@@ -8,8 +8,8 @@
 namespace project{
 	
 	
-	mesh_spot::grid_mesh(double spot, double maturity, double volatility, size_t time_steps, size_t steps){
-		
+	mesh_spot::grid_mesh(double spot, double maturity, double volatility, double time_step, size_t steps){
+		: dx(dx_spot), dt(time_steps)
 		
 		
 		double stock_init = log(spot);
@@ -26,7 +26,7 @@ namespace project{
 
 		}
 		
-		std::vector<double> vector_time(time_steps);
+		std::vector<double> vector_time(time_step);
 		
 		for (std::size_t j = 0; j < maturity ; ++j){
 			
@@ -43,13 +43,24 @@ namespace project{
 			return vector_time;
 	} //useful to get the vector of time from the mesh 
 			
-	std::vector<double> Getvector_stock() const{
+	std::vector<double> mesh_spot::Getvector_stock() const{
 		
 		return vector_stock;
 	
 	} //useful to get the vector of stock path from the mesh 
 			
+	double mesh_spot::getdx() const{
 		
+		return dx_spot;
+	
+	} //we will need to get the dx for CN algo 
+	
+	double mesh_spot::getdt() const{
+		
+		return time_steps;
+	
+	} // we will need the dt for CN algo 
+	
 		
 		
 		

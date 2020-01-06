@@ -15,12 +15,17 @@ namespace project
 	~grid_mesh();
 	std::vector<double> Getvector_time() const;
 	std::vector<double> Getvector_stock() const;
+	double getdx() const;
+	double getdt() const;
 	
 	
 	private: 
 	
-	std::vector<double> Getvector_time;
-	std::vector<double> Getvector_stock;
+	std::vector<double> vector_time;
+	std::vector<double> vector_stock;
+	double dx;
+	double dt;
+	
 	
 	}  
 }
