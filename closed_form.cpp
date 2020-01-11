@@ -1,10 +1,10 @@
-#include "closed_form.hpp"
+
 #include <cmath>
 #include <limits>
 #include <algorithm>
 
-namespace dauphine
-{
+#include "closed_form.hpp"
+
     double ncdf(double x)
     {
         return 0.5 * std::erfc(-x / std::sqrt(2));
@@ -82,5 +82,28 @@ namespace dauphine
         }
         return res;
     }
-}
+	PayOff::PayOff() 
+	{	
+	}
+	
+//We start with the classic call and putpayoff
+	//Regarding parameters, we only need a strike price to define de payoff of both options
+	PayOffCall::PayOffCall(const double& _K) 
+	{
+		K = _K; 
+	}
+	double PayOffCall::operator() (const double& S) const 
+	{
+		return std::max(S-K, 0.0); // Call payoff
+	}
+
+	VanillaOption::VanillaOption()
+	 {
+	 }
+
+	VanillaOption::VanillaOption(double _K, double _r, double _T, double _sigma, PayOff* _pay_off)
+		: 
+		K(_K), r(_r), T(_T), sigma(_sigma), pay_off(_pay_off)
+		{
+		}
 
