@@ -17,6 +17,7 @@ namespace project
 	std::vector<double> Getvector_stock() const;
 	double getdx() const;
 	double getdt() const;
+	double get_Spot const;
 	
 	
 	private: 
@@ -25,6 +26,7 @@ namespace project
 	std::vector<double> vector_stock;
 	double dx;
 	double dt;
+	double spot;
 	
 	
 	}  
