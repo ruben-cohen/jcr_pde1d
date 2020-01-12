@@ -106,4 +106,13 @@
 		K(_K), r(_r), T(_T), sigma(_sigma), pay_off(_pay_off)
 		{
 		}
+		
+	PDE::PDE(VanillaOption* _option) : option(_option)
+	{
+	}
 
+	// Initial condition (vanilla call option)
+	double PDE::init_cond(double x) const 
+	{
+	  return option->pay_off->operator()(x);
+	}

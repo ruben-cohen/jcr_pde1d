@@ -3,6 +3,18 @@
 #include <vector>
 #include <cmath>
 
+
+PDE::PDE(VanillaOption* _option)
+ : option(_option)
+{
+}
+
+// Initial condition (vanilla call option)
+double PDE::init_cond(double x) const 
+{
+  return option->pay_off->operator()(x);
+}
+
 std::vector<double> CranckNicholson_algo(mesh_spot grid, parameters param){}; //main function where we define the CN procedure
 std::vector<double> Thomas_triLinMatrix_inverse(){}; //need to inverse A in the system that is a diagonal matrix 
 	
