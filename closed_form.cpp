@@ -86,7 +86,7 @@
 	{	
 	}
 	
-//We start with the classic call and putpayoff
+//We start with the classic call and put payoff
 	//Regarding parameters, we only need a strike price to define de payoff of both options
 	PayOffCall::PayOffCall(const double& _K) 
 	{
@@ -111,7 +111,11 @@
 	{
 	}
 
-	// Initial condition (vanilla call option)
+	// Initial condition (vanilla call option), we compute just the payoff created 
+	// x parameter stands for the spot
+	// See it the main how the function is called
+		//We first create a payoff object
+		//Then, we use vanillaOption, the notable component of the option is the pointer to a PayOff class. This allows us to use a call, put or some other form of pay-off without needing to expose this to the "outside world"
 	double PDE::init_cond(double x) const 
 	{
 	  return option->pay_off->operator()(x);
