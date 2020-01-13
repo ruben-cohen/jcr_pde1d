@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
-
+//
 
 //Payoff Class
 	class PayOff 

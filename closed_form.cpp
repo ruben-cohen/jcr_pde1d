@@ -2,7 +2,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
-
+//
 #include "closed_form.hpp"
 
 //Payoff Class
