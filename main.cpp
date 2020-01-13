@@ -11,29 +11,31 @@ int main(int argc, char* argv[])
 	double T = 1.00;    // One year until expiry
 	double res = 0.;
 	double res_2 = 0.;
+	
 	// FDM discretisation parameters
-	//double x_dom = 1.0;       // Spot goes from [0.0, 1.0]
+	//double x_dom_ma = 1.0;       // Spot goes from [0.0, 1.0]
 	//unsigned long J = 20; 
 	//double t_dom = T;         // Time period as for the option
 	//unsigned long N = 20;     
-
-	// Create the PayOff and Option objects
-	PayOff* pay_off_call = new PayOffCall(K);
-	VanillaOption* call_option = new VanillaOption(K, r, T, v, pay_off_call);
+	//PayOff* pay_off_call = new PayOffCall(K);
 	
-	// Create the PDE and FDM objects
-	//PDE* bs_pde = new PDE(call_option);
-	PDE m(call_option);
+// Create the PayOff object (strike as parameter)
+	PayOff* option = new PayOffCall(K);
+// Create the PDE objects as follows (the class should define the mesh given the FDM discretisation parameters)
+	//PDE* bs_pde = new PDE(option);
+	
+//Create FDM object (to solve the problem, we provide to the class, the grid previoulsy defined in the class PDE) 
+	
+	//Test pour voir si la fonction de calcul initial condition fonctionne
+	PDE m(option);
 	std::cout << m.init_cond(S) << std::endl;
 	
 	//FDMEulerExplicit fdm_euler(x_dom, J, t_dom, N, bs_pde);
-	//std::cout << *pay_off_call << std::endl;
+
+	
 	std::cout << "Julien" << std::endl;
-	res = vanilla_payoff(100,90,1);
-	std::cout << res << std::endl;
 	//delete bs_pde;
-	delete call_option;
-	delete pay_off_call;
+	delete option;
 
 	return 0;
 	
