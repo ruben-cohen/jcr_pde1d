@@ -88,10 +88,10 @@ namespace project {
 	
 	left_conditions.front() = left_begin;
 	left_conditions.back() = left_end;
-	
+	 
 	right_conditions.front() = right_begin;
 	right_conditions().back() = right_end;
-		
+	// sinon il faut le faire en récursif, mais je sais pas trop comment on récupère le bon time step ? 	
 	};
 	
 	std::vector<double>  bound_conditions::boundaries_compute(mesh_spot grid, parameters param, Payoff* function_payoff, bound_conditions* bound_func, std::vector<double> K_neuman ={0,0,0,0}){

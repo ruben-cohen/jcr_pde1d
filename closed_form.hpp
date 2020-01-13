@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
-
+//
 
 //Payoff Class
 	class PayOff 
@@ -37,16 +37,17 @@
 	};
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh Class	
-	class mesh{
+	class mesh
+	{
 	
 	public: 
-	grid_mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const size_t& steps);
-	~grid_mesh();
+	mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const size_t& steps);
+	~mesh();
 	std::vector<double> Getvector_time() const;
 	std::vector<double> Getvector_stock() const;
 	double getdx() const;
 	double getdt() const;
-	double get_Spot const;
+	double get_Spot() const;
 	
 	
 	private: 
@@ -56,7 +57,7 @@
 	double dx;
 	double dt;
 	double spot;
-	}  
+	};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // PDE Solver	
 	class PDE
