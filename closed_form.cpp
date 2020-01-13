@@ -22,13 +22,12 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh Class
-	mesh::grid_mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const size_t& steps)
+	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const size_t& steps)
+	:dt(time_step), spot(spot) //dx(steps)
 	{
-		: dx(dx_spot), dt(time_steps), spot(spot)
-		
-		double stock_init = log(spot);
-		double high_bound = stock_init + 5*volatility*sqrt(maturity);
-		double low_bound = stock_init - 5*volatility*sqrt(maturity);
+		double S0 = log(spot);
+		double high_bound = S0 + 5*volatility*sqrt(maturity);
+		double low_bound = S0 - 5*volatility*sqrt(maturity);
 		
 		double dx_spot = (high_bound - low_bound)/steps;
 		
@@ -36,19 +35,20 @@
 		
 		for (std::size_t i = 0; i < steps ; ++i){
 			
-			vector_stock[i] = stock_init + (i - steps )* dx_spot;
+			vector_stock[i] = S0 + (i - steps)* dx_spot;
 		}
 		
 		std::vector<double> vector_time(time_step);
 		
 		for (std::size_t j = 0; j < maturity ; ++j){
 			
-			vector_time[i] = j*time_steps;
+			vector_time[j] = j*time_step;
+			
+		dx = dx_spot;
 		}
 	};
-	mesh::~grid_mesh() {
-
-	} //destructor of the grid 
+	mesh::~mesh() {};
+			//std::cout << "destructor of the grid" << std::endl; //destructor of the grid 
 	
 	std::vector<double> mesh::Getvector_time()const{
 		
@@ -63,13 +63,13 @@
 			
 	double mesh::getdx() const{
 		
-		return dx_spot;
+		return dx;
 	
 	}; //we will need to get the dx for CN algo 
 	
 	double mesh::getdt() const{
 		
-		return time_steps;
+		return dt;
 	
 	}; // we will need the dt for CN algo 
 	
@@ -82,9 +82,8 @@
 // PDE Solver
 
 	PDE::PDE(PayOff* _option)
-	: option(_option)
-	{
-	}
+	:option(_option)
+	{};
 
 	// Initial condition (vanilla call option), we compute just the payoff created 
 	// x parameter stands for the spot

@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 // Create the PayOff object (strike as parameter)
 	PayOff* option = new PayOffCall(K);
 // Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
-	mesh grille(const S,const T, const v,const nb_step_time,const nb_step_spot)
+	mesh* grille = new mesh(S,T,v,nb_step_time,nb_step_spot);
 	
 // Create the PDE objects as follows (the class should define the mesh given the FDM discretisation parameters)
 	//PDE* bs_pde = new PDE(option);
