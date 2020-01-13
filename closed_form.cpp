@@ -5,6 +5,7 @@
 
 #include "closed_form.hpp"
 
+//Payoff Class
 	PayOff::PayOff() 
 	{	
 	}
@@ -19,6 +20,67 @@
 		return std::max(S-K, 0.0); // Call payoff
 	}
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mesh Class
+	mesh::grid_mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const size_t& steps)
+	{
+		: dx(dx_spot), dt(time_steps), spot(spot)
+		
+		double stock_init = log(spot);
+		double high_bound = stock_init + 5*volatility*sqrt(maturity);
+		double low_bound = stock_init - 5*volatility*sqrt(maturity);
+		
+		double dx_spot = (high_bound - low_bound)/steps;
+		
+		std::vector<double> vector_stock(steps);
+		
+		for (std::size_t i = 0; i < steps ; ++i){
+			
+			vector_stock[i] = stock_init + (i - steps )* dx_spot;
+		}
+		
+		std::vector<double> vector_time(time_step);
+		
+		for (std::size_t j = 0; j < maturity ; ++j){
+			
+			vector_time[i] = j*time_steps;
+		}
+	};
+	mesh::~grid_mesh() {
+
+	} //destructor of the grid 
+	
+	std::vector<double> mesh::Getvector_time()const{
+		
+			return vector_time;
+	}; //useful to get the vector of time from the mesh 
+			
+	std::vector<double> mesh::Getvector_stock() const{
+		
+		return vector_stock;
+	
+	}; //useful to get the vector of stock path from the mesh 
+			
+	double mesh::getdx() const{
+		
+		return dx_spot;
+	
+	}; //we will need to get the dx for CN algo 
+	
+	double mesh::getdt() const{
+		
+		return time_steps;
+	
+	}; // we will need the dt for CN algo 
+	
+	double mesh::get_Spot() const{
+		
+		return spot;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// PDE Solver
+
 	PDE::PDE(PayOff* _option)
 	: option(_option)
 	{
@@ -31,6 +93,10 @@
 	  return option->operator()(x);
 	}
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Poubelle
 	
 
     // double ncdf(double x)

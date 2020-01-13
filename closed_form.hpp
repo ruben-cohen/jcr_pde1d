@@ -5,7 +5,7 @@
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
 
 
-
+//Payoff Class
 	class PayOff 
 	{
 		 public:
@@ -35,10 +35,33 @@
 
 		 
 	};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mesh Class	
+	class mesh{
 	
+	public: 
+	grid_mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const size_t& steps);
+	~grid_mesh();
+	std::vector<double> Getvector_time() const;
+	std::vector<double> Getvector_stock() const;
+	double getdx() const;
+	double getdt() const;
+	double get_Spot const;
+	
+	
+	private: 
+	
+	std::vector<double> vector_time;
+	std::vector<double> vector_stock;
+	double dx;
+	double dt;
+	double spot;
+	}  
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// PDE Solver	
 	class PDE
 	{
-		public:
+		public: //Ajouter en plus de l'option la grille normalement construite avant
 		PDE(PayOff* _option);
 		PayOff* option;
 		
@@ -46,24 +69,27 @@
 		// std::vector<double> Upper_diag_coeff(mesh_spot grid, parameters param,bool A);
 		// std::vector<double> Lower_diag_coeff(mesh_spot grid, parameters param,bool A);
 
-		//all in function to get the price of the option and the greeks ? 
-		//std::vector<double> resolution();
+		// all in function to get the price of the option and the greeks ? 
+		// std::vector<double> resolution();
 		
-		//function to compute the greeks ? 
+		// function to compute the greeks ? 
 
-		//double boundary_left(double t, double x) const;
-		//double boundary_right(double t, double x) const;
+		// double boundary_left(double t, double x) const;
+		// double boundary_right(double t, double x) const;
 		
 		double init_cond(const double& x) const; //To compute the payoff we want to implement (at maturity)
-		//std::vector<double> init_cond(
+		// std::vector<double> init_cond(
 		
-		//std::vector<double> CranckNicholson_algo(mesh_spot grid, parameters param); //main function where we define the CN procedure
-		//std::vector<double> Thomas_triLinMatrix_inverse(); //need to inverse A in the system that is a diagonal matrix 
+		// std::vector<double> CranckNicholson_algo(mesh_spot grid, parameters param); //main function where we define the CN procedure
+		// std::vector<double> Thomas_triLinMatrix_inverse(); //need to inverse A in the system that is a diagonal matrix 
 		
-		//set of function to define the A matrix (3 better than just one huge matrix ?) 
-		//in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
+		// set of function to define the A matrix (3 better than just one huge matrix ?) 
+		// in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
 		// we will get dx and dt from grid class 
 	};
+	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Poubelle
 	
 // class VanillaOption 
 	// {
