@@ -12,15 +12,18 @@ int main(int argc, char* argv[])
 	double res = 0.;
 	double res_2 = 0.;
 	
-	// FDM discretisation parameters
-	//double x_dom_ma = 1.0;       // Spot goes from [0.0, 1.0]
-	//unsigned long J = 20; 
+	// mesh discretisation parameters
+	size_t nb_step_spot =20;    // Spot goes from [0.0, 1.0]
+	long nb_step_time = 20; 
 	//double t_dom = T;         // Time period as for the option
 	//unsigned long N = 20;     
 	//PayOff* pay_off_call = new PayOffCall(K);
 	
 // Create the PayOff object (strike as parameter)
 	PayOff* option = new PayOffCall(K);
+// Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
+	mesh grille(const S,const T, const v,const nb_step_time,const nb_step_spot)
+	
 // Create the PDE objects as follows (the class should define the mesh given the FDM discretisation parameters)
 	//PDE* bs_pde = new PDE(option);
 	
