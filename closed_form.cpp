@@ -5,88 +5,10 @@
 
 #include "closed_form.hpp"
 
-    double ncdf(double x)
-    {
-        return 0.5 * std::erfc(-x / std::sqrt(2));
-    }
-    
-    double vanilla_payoff(double fwd, double strike, bool is_call)
-    {
-        return std::max(is_call ? fwd - strike : strike - fwd, 0.);
-    }
-
-    double bs_time_value(double fwd, double strike, double volatility, double maturity)
-    {
-        if(strike == 0.)
-        {
-            return 0.;
-        }
-        else
-        {
-            double stddev = volatility * std::sqrt(maturity);
-            if(stddev == 0.)
-            {
-                return 0.;
-            }
-            double tmp = std::log(fwd / strike) / stddev;
-            double d1 = tmp + 0.5 * stddev;
-            double d2 = tmp - 0.5 * stddev;
-            double res;
-            if(fwd > strike)
-            {
-                res = strike * ncdf(-d2) - fwd * ncdf(-d1);
-            }
-            else
-            {
-                res = fwd * ncdf(d1) - strike * ncdf(d2);
-            }
-            if(res <= std::numeric_limits<double>::min())
-            {
-                res = 0.;
-            }
-            return res;
-        }
-    }
-
-    double bs_price(double fwd, double strike, double volatility, double maturity, bool is_call)
-    {
-        return vanilla_payoff(fwd, strike, is_call) + bs_time_value(fwd, strike, volatility, maturity);
-    }
-
-    std::vector<double> vanilla_payoff(const std::vector<double>& fwd, double strike, bool is_call)
-    {
-        std::vector<double> res(fwd.size());
-        for(std::size_t i = 0; i < fwd.size(); ++i)
-        {
-            res[i] = vanilla_payoff(fwd[i], strike, is_call);
-        }
-        return res;
-    }
-
-    std::vector<double> bs_time_value(const std::vector<double>& fwd, double strike, double volatility, double maturity)
-    {
-        std::vector<double> res(fwd.size());
-        for(std::size_t i = 0; i < fwd.size(); ++i)
-        {
-            res[i] = bs_time_value(fwd[i], strike, volatility, maturity);
-        }
-        return res;
-    }
-
-    std::vector<double> bs_price(const std::vector<double>& fwd, double strike, double volatility, double maturity, bool is_call)
-    {
-        std::vector<double> res(fwd.size());
-        for(std::size_t i = 0; i < fwd.size(); ++i)
-        {
-            res[i] = bs_price(fwd[i], strike, volatility, maturity, is_call);
-        }
-        return res;
-    }
 	PayOff::PayOff() 
 	{	
 	}
-	
-//We start with the classic call and put payoff
+	//We start with the classic call and put payoff
 	//Regarding parameters, we only need a strike price to define de payoff of both options
 	PayOffCall::PayOffCall(const double& _K) 
 	{
@@ -97,26 +19,104 @@
 		return std::max(S-K, 0.0); // Call payoff
 	}
 
-	VanillaOption::VanillaOption()
-	 {
-	 }
-
-	VanillaOption::VanillaOption(double _K, double _r, double _T, double _sigma, PayOff* _pay_off)
-		: 
-		K(_K), r(_r), T(_T), sigma(_sigma), pay_off(_pay_off)
-		{
-		}
-		
-	PDE::PDE(VanillaOption* _option) : option(_option)
+	PDE::PDE(PayOff* _option)
+	: option(_option)
 	{
 	}
 
 	// Initial condition (vanilla call option), we compute just the payoff created 
 	// x parameter stands for the spot
-	// See it the main how the function is called
-		//We first create a payoff object
-		//Then, we use vanillaOption, the notable component of the option is the pointer to a PayOff class. This allows us to use a call, put or some other form of pay-off without needing to expose this to the "outside world"
-	double PDE::init_cond(double x) const 
+	double PDE::init_cond(const double& x) const 
 	{
-	  return option->pay_off->operator()(x);
+	  return option->operator()(x);
 	}
+
+	
+
+    // double ncdf(double x)
+    // {
+        // return 0.5 * std::erfc(-x / std::sqrt(2));
+    // }
+    
+    // double vanilla_payoff(double fwd, double strike, bool is_call)
+    // {
+        // return std::max(is_call ? fwd - strike : strike - fwd, 0.);
+    // }
+
+    // double bs_time_value(double fwd, double strike, double volatility, double maturity)
+    // {
+        // if(strike == 0.)
+        // {
+            // return 0.;
+        // }
+        // else
+        // {
+            // double stddev = volatility * std::sqrt(maturity);
+            // if(stddev == 0.)
+            // {
+                // return 0.;
+            // }
+            // double tmp = std::log(fwd / strike) / stddev;
+            // double d1 = tmp + 0.5 * stddev;
+            // double d2 = tmp - 0.5 * stddev;
+            // double res;
+            // if(fwd > strike)
+            // {
+                // res = strike * ncdf(-d2) - fwd * ncdf(-d1);
+            // }
+            // else
+            // {
+                // res = fwd * ncdf(d1) - strike * ncdf(d2);
+            // }
+            // if(res <= std::numeric_limits<double>::min())
+            // {
+                // res = 0.;
+            // }
+            // return res;
+        // }
+    // }
+
+    // double bs_price(double fwd, double strike, double volatility, double maturity, bool is_call)
+    // {
+        // return vanilla_payoff(fwd, strike, is_call) + bs_time_value(fwd, strike, volatility, maturity);
+    // }
+
+    // std::vector<double> vanilla_payoff(const std::vector<double>& fwd, double strike, bool is_call)
+    // {
+        // std::vector<double> res(fwd.size());
+        // for(std::size_t i = 0; i < fwd.size(); ++i)
+        // {
+            // res[i] = vanilla_payoff(fwd[i], strike, is_call);
+        // }
+        // return res;
+    // }
+
+    // std::vector<double> bs_time_value(const std::vector<double>& fwd, double strike, double volatility, double maturity)
+    // {
+        // std::vector<double> res(fwd.size());
+        // for(std::size_t i = 0; i < fwd.size(); ++i)
+        // {
+            // res[i] = bs_time_value(fwd[i], strike, volatility, maturity);
+        // }
+        // return res;
+    // }
+
+    // std::vector<double> bs_price(const std::vector<double>& fwd, double strike, double volatility, double maturity, bool is_call)
+    // {
+        // std::vector<double> res(fwd.size());
+        // for(std::size_t i = 0; i < fwd.size(); ++i)
+        // {
+            // res[i] = bs_price(fwd[i], strike, volatility, maturity, is_call);
+        // }
+        // return res;
+    // }
+	// VanillaOption::VanillaOption()
+	 // {
+	 // }
+
+	// VanillaOption::VanillaOption(double _K, double _r, double _T, double _sigma, PayOff* _pay_off)
+		// : 
+		// K(_K), r(_r), T(_T), sigma(_sigma), pay_off(_pay_off)
+		// {
+		// }
+		
