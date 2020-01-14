@@ -23,7 +23,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh Class
 	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const size_t& steps)
-	:dt(time_step), spot(spot) //dx(steps)
+	:dt(time_step),
+	 spot(spot)
+	 //dx(steps)
 	{
 		double S0 = log(spot);
 		double high_bound = S0 + 5*volatility*sqrt(maturity);
@@ -81,9 +83,25 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // PDE Solver
 
-	PDE::PDE(PayOff* _option)
+	PDE::PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector)
 	:option(_option)
-	{};
+	{
+		size_t nb_step = spot_vector.size();
+		std::vector<double> m_init_vector(nb_step);
+		for (std::size_t i = 0; i < nb_step ; ++i)
+		{
+			m_init_vector[i]= init_cond(spot_vector[i]);
+		}
+		
+	};
+	void PDE::print(const std::vector<double>& v)
+    {
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            std::cout << v[i] << ",";
+        }
+        std::cout << std::endl;
+    }
 
 	// Initial condition (vanilla call option), we compute just the payoff created 
 	// x parameter stands for the spot
@@ -91,7 +109,20 @@
 	{
 	  return option->operator()(x);
 	}
+	std::vector<double> PDE::get_init_vector() const //const forbid to modify the state of my object
+    {
+		//m_nb_rows = 0;
+        return m_init_vector;
+    }
 
+    void print(const std::vector<double>& v)
+    {
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            std::cout << v[i] << ",";
+        }
+        std::cout << std::endl;
+    }
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
