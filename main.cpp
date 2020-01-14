@@ -15,28 +15,21 @@ int main(int argc, char* argv[])
 	// mesh discretisation parameters
 	size_t nb_step_spot =20;    // Spot goes from [0.0, 1.0]
 	long nb_step_time = 20; 
-	//double t_dom = T;         // Time period as for the option
-	//unsigned long N = 20;     
-	//PayOff* pay_off_call = new PayOffCall(K);
 	
-// Create the PayOff object (strike as parameter)
+	// Create the PayOff object (strike as parameter)
 	PayOff* option = new PayOffCall(K);
-// Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
-	mesh* grille = new mesh(S,T,v,nb_step_time,nb_step_spot);
-	
-// Create the PDE objects as follows (the class should define the mesh given the FDM discretisation parameters)
-	//PDE* bs_pde = new PDE(option);
-	
-//Create FDM object (to solve the problem, we provide to the class, the grid previoulsy defined in the class PDE) 
-	
-	//Test pour voir si la fonction de calcul initial condition fonctionne
-	PDE m(option);
-	std::cout << m.init_cond(S) << std::endl;
-	
-	//FDMEulerExplicit fdm_euler(x_dom, J, t_dom, N, bs_pde);
+	// Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
+	mesh grille(S,T,v,nb_step_time,nb_step_spot);
+	//dauphine::matrix m(2, 4);
 
 	
-	std::cout << "Julien" << std::endl;
+	//Create PDE object (to solve the problem, we provide to the class, the grid previoulsy defined in the class PDE) 
+	PDE m(option,grille.getdx(),grille.getdt(),grille.Getvector_time(),grille.Getvector_stock());
+	std::cout << m.init_cond(S) << std::endl;
+	//print(m.get_init_vector());
+	//print(grille.Getvector_time());
+	m.print(m.get_init_vector());
+	std::cout << grille.getdx() << std::endl;
 	//delete bs_pde;
 	delete option;
 

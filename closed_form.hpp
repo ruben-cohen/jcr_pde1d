@@ -62,10 +62,16 @@
 // PDE Solver	
 	class PDE
 	{
-		public: //Ajouter en plus de l'option la grille normalement construite avant
-		PDE(PayOff* _option);
+		public: 
+		
+		PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector);
 		PayOff* option;
 		
+		//To compute the payoff we want to implement (at maturity)
+		double init_cond(const double& x) const;
+		std::vector<double> get_init_vector() const;
+		void print(const std::vector<double>& v);
+		// std::vector<double> init_cond(		
 		// std::vector<double> Mid_diag_coeff(mesh_spot grid, parameters param,bool A); 
 		// std::vector<double> Upper_diag_coeff(mesh_spot grid, parameters param,bool A);
 		// std::vector<double> Lower_diag_coeff(mesh_spot grid, parameters param,bool A);
@@ -78,8 +84,11 @@
 		// double boundary_left(double t, double x) const;
 		// double boundary_right(double t, double x) const;
 		
-		double init_cond(const double& x) const; //To compute the payoff we want to implement (at maturity)
-		// std::vector<double> init_cond(
+		private:
+		
+		std::vector<double> m_init_vector;
+		
+		
 		
 		// std::vector<double> CranckNicholson_algo(mesh_spot grid, parameters param); //main function where we define the CN procedure
 		// std::vector<double> Thomas_triLinMatrix_inverse(); //need to inverse A in the system that is a diagonal matrix 
@@ -88,7 +97,7 @@
 		// in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
 		// we will get dx and dt from grid class 
 	};
-	
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
 	
