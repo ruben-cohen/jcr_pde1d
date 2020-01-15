@@ -2,7 +2,7 @@
 #include "closed_form.hpp"
 #include <vector>
 
-//
+////
 int main(int argc, char* argv[])
 {
 	// Create the option parameters

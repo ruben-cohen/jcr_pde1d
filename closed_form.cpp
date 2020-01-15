@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 #include "closed_form.hpp"
-
+//
 //Payoff Class
 	//PayOff::PayOff(){};
 	//We start with the classic call and put payoff
