@@ -41,7 +41,7 @@
 	{
 	
 	public: 
-	mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const size_t& steps);
+	mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const long& steps);
 	~mesh();
 	std::vector<double> Getvector_time() const;
 	std::vector<double> Getvector_stock() const;
@@ -58,6 +58,8 @@
 	double dt;
 	double spot;
 	};
+	
+void print(const std::vector<double>& v);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // PDE Solver	
 	class PDE
@@ -70,7 +72,7 @@
 		//To compute the payoff we want to implement (at maturity)
 		double init_cond(const double& x) const;
 		std::vector<double> get_init_vector() const;
-		void print(const std::vector<double>& v);
+		
 		// std::vector<double> init_cond(		
 		// std::vector<double> Mid_diag_coeff(mesh_spot grid, parameters param,bool A); 
 		// std::vector<double> Upper_diag_coeff(mesh_spot grid, parameters param,bool A);
@@ -119,52 +121,52 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // boundaries class
 	
-	class bound_conditions {
-	public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
+	// class bound_conditions {
+	// public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
 	
-	bound_conditions();
+	// bound_conditions();
 	
-	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option, std::vector<double> K_neuman);
-	~bound_conditions();
+	// std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option, std::vector<double> K_neuman);
+	// ~bound_conditions();
 	
-	const std::vector<std::vector<double>> get_matrix();
+	// const std::vector<std::vector<double>> get_matrix();
 	
-	static std::vector<std::vector<double>>   boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman ={0,0,0,0});
-	//this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
+	// static std::vector<std::vector<double>>   boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman ={0,0,0,0});
+	// //this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
 
-	private:
+	// private:
 	
-	std::vector<std::vector<double>> Matrix_conditions;
+	// std::vector<std::vector<double>> Matrix_conditions;
 		
-	};
+	// };
 	
-	class Neumann : public  bound_conditions {
+	// class Neumann : public  bound_conditions {
 		
-	public:
-	Neumann(){};
+	// public:
+	// Neumann(){};
 		
-	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+	// std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 	
 	
-	private: 
+	// private: 
 	
-	std::vector<double> K_neuman; 
+	// std::vector<double> K_neuman; 
 	
-	};
+	// };
 	
-	class Derichtlet: public bound_conditions {
+	// class Derichtlet: public bound_conditions {
 		
-	public:
+	// public:
 	
-	Derichtlet(){};
+	// Derichtlet(){};
 	
-	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+	// std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 
-	private: 
+	// private: 
 	
-	std::vector<double> K_neuman; 
+	// std::vector<double> K_neuman; 
 		
-	};
+	// };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
