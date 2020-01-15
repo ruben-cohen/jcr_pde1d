@@ -2,29 +2,23 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
-//
 #include "closed_form.hpp"
-
+//
 //Payoff Class
-	PayOff::PayOff() 
-	{	
-	}
+	//PayOff::PayOff(){};
 	//We start with the classic call and put payoff
-	//Regarding parameters, we only need a strike price to define de payoff of both options
-	PayOffCall::PayOffCall(const double& _K) 
-	{
-		K = _K; 
-	}
+	//Regarding parameters, we only need a strike price to define the payoff of both options
+	PayOffCall::PayOffCall(const double& _K):K(_K) {};
+	
 	double PayOffCall::operator() (const double& S) const 
 	{
 		return std::max(S-K, 0.0); // Call payoff
-	}
+	};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh Class
 	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const size_t& steps)
-	:dt(time_step),
-	 spot(spot)
+	:dt(time_step), spot(spot)
 	 //dx(steps)
 	{
 		double S0 = log(spot);
@@ -101,19 +95,19 @@
             std::cout << v[i] << ",";
         }
         std::cout << std::endl;
-    }
+    };
 
 	// Initial condition (vanilla call option), we compute just the payoff created 
 	// x parameter stands for the spot
 	double PDE::init_cond(const double& x) const 
 	{
 	  return option->operator()(x);
-	}
+	};
 	std::vector<double> PDE::get_init_vector() const //const forbid to modify the state of my object
     {
 		//m_nb_rows = 0;
         return m_init_vector;
-    }
+    };
 
     void print(const std::vector<double>& v)
     {
@@ -122,7 +116,192 @@
             std::cout << v[i] << ",";
         }
         std::cout << std::endl;
-    }
+    };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//parameters 
+
+	Parameters::Parameters(double vol, double rate, double theta)
+		: pa_vol(vol), pa_Rate(rate), pa_Theta(theta)
+	{
+
+	};
+	double Parameters::Get_Vol() const{
+
+		return pa_vol;
+	};
+	double Parameters::Get_Rate() const{
+
+		return pa_Rate;
+	};
+	double Parameters::Get_Theta() const{
+
+		return pa_Theta;
+	};
+	Parameters::~Parameters() {
+
+	};
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//bondaries implementation 
+
+	bound_conditions::bound_conditions(){
+		
+		std::cout << "constructor of the bound_conditions" << std::endl;
+	};
+	
+	//std::vector<double> bound_conditions::operator()(mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman){};
+	
+	std::vector<std::vector<double>>  Neumann::operator()(mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman){
+	
+	double dt = grid.getdt();
+	double dx = grid.getdx(); //need the stock step 
+	double sigma = param.Get_Vol(); //to get the volatility 
+	double rate = param.Get_Rate(); //the get the rate 
+	double theta = param.Get_Theta(); //to get the theta 
+	double size_vec = grid.Getvector_time().size();
+	double maturity = grid.Getvector_time().back();
+	double S0 = grid.get_Spot();
+	double size_spot = grid.Getvector_stock().size();
+	
+	double K1 = K_neuman[0];
+	double K2 = K_neuman[1];
+	double K3 = K_neuman[2];
+	double K4 = K_neuman[3];
+	
+	
+	PDE _payoff(option,dx,dt,grid.Getvector_time(),grid.Getvector_stock()); //create the PDE object from the option 
+	std::vector<double>  _init_cond = _payoff.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
+	
+	double f_0_T = _init_cond[0]; //first element of the vector is the payoff at min S and maturity 
+	double f_N_T = _init_cond.back(); //last element is the payoff at max S and maturity 
+	
+	std::vector<double> upper_conditions(size_vec); 
+	std::vector<double> lower_conditions(size_vec); 
+	
+	std::fill (upper_conditions.begin(),upper_conditions.end()-1,0);   // we fill the vector with 0 at time 1 to T-1 
+	upper_conditions.back() = f_0_T*exp(-maturity*rate);
+	std::fill (lower_conditions.begin(),lower_conditions.end()-1,0);
+	lower_conditions.back() = f_N_T*exp(-maturity*rate);
+	
+	//double beta_left =  dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+	//double beta_right = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+	
+	//double alpha_left = dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+	//double alpha = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+	
+	double coef_ =(1 - dt*(1-theta)*rate)/(1+ dt*theta*rate);
+	double coef_K1_K2 = -dt*((-pow(sigma,2)*K1)/2 + (pow(sigma,2)/2 - rate)*K2)/(1+ dt*theta*rate);
+	double coef_K3_K4 = -dt*((-pow(sigma,2)*K3)/2 + ((pow(sigma,2))/2 - rate)*K4)/(1+ dt*theta*rate);
+	
+	for (unsigned it = upper_conditions.size(); it != 0; it--)
+	{
+	//reverse iterator to fill the vector from the end to the beginning
+		
+		upper_conditions[it]  = coef_*upper_conditions[it-1] + coef_K1_K2; //
+		
+		lower_conditions[it] = coef_*lower_conditions[it-1] + coef_K3_K4;
+	}
+
+	std::vector<std::vector<double>> matrix_neumann(size_spot,std::vector<double> (size_vec));
+	  
+	matrix_neumann.front() = upper_conditions;
+	
+	for (int i = 1; i < size_spot-1; i++){
+		
+		std::vector<double> row_0;
+		
+		row_0.resize(size_vec,0.0);
+		
+		matrix_neumann.push_back(row_0);
+	}
+	
+	matrix_neumann.push_back(lower_conditions);
+	
+	std::vector<std::vector<double>> Matrix_conditions(matrix_neumann);
+	
+	return matrix_neumann;
+	};
+	
+	std::vector<std::vector<double>>  Derichtlet::operator()(mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman){
+		
+	double dt = grid.getdt();
+	double dx = grid.getdx(); //need the stock step 
+	double sigma = param.Get_Vol(); //to get the volatility 
+	double rate = param.Get_Rate(); //the get the rate 
+	double theta = param.Get_Theta(); //to get the theta 
+	double size_vec = grid.Getvector_time().size();
+	double maturity = grid.Getvector_time().back();
+	double S0 = grid.get_Spot();
+	double size_spot = grid.Getvector_stock().size();
+	
+	PDE _payoff(option,dx,dt,grid.Getvector_time(),grid.Getvector_stock()); //create the PDE object from the option 
+	std::vector<double>  _init_cond = _payoff.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
+	
+	double f_0_T = _init_cond[0]*exp(-maturity*rate); //first element of the vector is the payoff at min S and maturity 
+	double f_N_T = _init_cond.back()*exp(-maturity*rate); //last element is the payoff at max S and maturity 
+	
+	std::vector<double> upper_conditions(size_vec); 
+	std::vector<double> lower_conditions(size_vec); 
+	
+	std::fill (upper_conditions.begin(),upper_conditions.end(),f_0_T);   // we fill the vector with the terminal condition as Vn f_n is a constant (l or h)  
+	std::fill (lower_conditions.begin(),lower_conditions.end(),f_N_T);
+	
+	//double beta_left =  dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+	//double beta_right = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+	
+	//double alpha_left = dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+	//double alpha = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+	
+	double coef_ =1;
+	double coef_K1_K2 = 0;
+	double coef_K3_K4 = 0;
+	
+	for (unsigned it = upper_conditions.size(); it != 0; it--){
+	//reverse iterator to fill the vector from the end to the beginning
+		
+		upper_conditions[it]  = coef_*upper_conditions[it-1] + coef_K1_K2; //
+		
+		lower_conditions[it] = coef_*lower_conditions[it-1] + coef_K3_K4;
+	}
+	
+	std::vector<std::vector<double>> matrix_derichtlet(size_spot,std::vector<double> (size_vec));
+	  
+	matrix_derichtlet.front() = upper_conditions;
+	
+	for (int i = 1; i < size_spot-1; i++){
+		
+		std::vector<double> row_0;
+		
+		row_0.resize(size_vec,0.0);
+		
+		matrix_derichtlet.push_back(row_0);
+	}
+	
+	matrix_derichtlet.push_back(lower_conditions);
+	
+	std::vector<std::vector<double>> Matrix_conditions(matrix_derichtlet);
+
+	return matrix_derichtlet;
+	
+		
+	};
+	
+	std::vector<std::vector<double>>   bound_conditions::boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman){
+		
+	return (*bound_func)(grid, param, option, K_neuman);
+		
+	};
+	
+	
+	const std::vector<std::vector<double>> bound_conditions::get_matrix(){
+		
+		return Matrix_conditions;
+	};
+	
+	
+	bound_conditions::~bound_conditions(){}; //destructor of the boundaries_conditions 
+	
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

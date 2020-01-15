@@ -3,13 +3,13 @@
 #include <iostream>
 #include <vector>
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
-//
+////
 
 //Payoff Class
 	class PayOff 
 	{
 		 public:
-		  PayOff();
+		  PayOff(){};
 		  // Virtual destructor to avoid memory leaks when destroying the base and inherited classes
 		  virtual ~PayOff() {}; 
 		  // We turn the class into a functor (object we can call just like an object)
@@ -23,7 +23,7 @@
 	class PayOffCall : public PayOff 
 	{
 		public:
-		  PayOffCall(const double& K_);
+		  PayOffCall(const double& _K);
 		  virtual ~PayOffCall() {};
 
 		  // Virtual function is now over-ridden (not pure-virtual anymore)
@@ -97,6 +97,75 @@
 		// in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
 		// we will get dx and dt from grid class 
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// paramaters 
+	
+	class Parameters { 
+	public:
+		Parameters(double vol, double rate, double theta);
+		double Get_Vol() const;
+		double Get_Rate() const;
+		double Get_Theta() const;
+		~Parameters();
+
+	private:
+		
+		double pa_vol;
+		double pa_Rate;
+		double pa_Theta;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// boundaries class
+	
+	class bound_conditions {
+	public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
+	
+	bound_conditions();
+	
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option, std::vector<double> K_neuman);
+	~bound_conditions();
+	
+	const std::vector<std::vector<double>> get_matrix();
+	
+	static std::vector<std::vector<double>>   boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman ={0,0,0,0});
+	//this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
+
+	private:
+	
+	std::vector<std::vector<double>> Matrix_conditions;
+		
+	};
+	
+	class Neumann : public  bound_conditions {
+		
+	public:
+	Neumann(){};
+		
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+	
+	
+	private: 
+	
+	std::vector<double> K_neuman; 
+	
+	};
+	
+	class Derichtlet: public bound_conditions {
+		
+	public:
+	
+	Derichtlet(){};
+	
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+
+	private: 
+	
+	std::vector<double> K_neuman; 
+		
+	};
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
