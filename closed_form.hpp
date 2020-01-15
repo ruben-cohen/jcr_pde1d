@@ -98,6 +98,68 @@
 		// we will get dx and dt from grid class 
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// paramaters 
+	
+	class Parameters {
+	public:
+		Parameters(double vol, double rate, double theta);
+		double Get_Vol() const;
+		double Get_Rate() const;
+		double Get_Theta() const;
+		~Parameters();
+
+	private:
+		
+		double pa_vol;
+		double pa_Rate;
+		double pa_Theta;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// boundaries class
+	
+	class bound_conditions {
+	public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
+	
+	bound_conditions(){};
+	//virtual std::vector<double> operator() bounds(mesh grid, parameters param, Payoff* option, std::vector<double> K_neuman ={0,0,0,0}) = 0;
+	~bound_conditions();
+	
+	const std::vector<double> get_upper_border();
+	const std::vector<double> get_lower_border();
+	
+	std::vector<double>  boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions*bound_func, std::vector<double> K_neuman ={0,0,0,0});
+	//this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
+
+	private:
+	
+	std::vector<double> upper_conditions;
+	std::vector<double> lower_conditions;
+		
+	};
+	
+	class Neumann : public bound_conditions {
+		
+	Neumann(){};
+		
+	virtual std::vector<double> operator() (mesh grid, Parameters param, PayOff* option,std::vector<double> K_neuman ={0,0,0,0});
+		
+	
+	}
+	
+	class Derichtlet: public bound_conditions {
+	
+	Derichtlet(){};
+	virtual std::vector<double> operator() (mesh grid, Parameters param, PayOff* option,std::vector<double> K_neuman ={0,0,0,0});
+		
+		
+		
+		
+		
+	}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
 	
