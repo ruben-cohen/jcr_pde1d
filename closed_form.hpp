@@ -9,7 +9,7 @@
 	class PayOff 
 	{
 		 public:
-		  PayOff();
+		  PayOff(){};
 		  // Virtual destructor to avoid memory leaks when destroying the base and inherited classes
 		  virtual ~PayOff() {}; 
 		  // We turn the class into a functor (object we can call just like an object)
@@ -23,7 +23,7 @@
 	class PayOffCall : public PayOff 
 	{
 		public:
-		  PayOffCall(const double& K_);
+		  PayOffCall(const double& _K);
 		  virtual ~PayOffCall() {};
 
 		  // Virtual function is now over-ridden (not pure-virtual anymore)
@@ -101,7 +101,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // paramaters 
 	
-	class Parameters {
+	class Parameters { 
 	public:
 		Parameters(double vol, double rate, double theta);
 		double Get_Vol() const;
@@ -122,42 +122,49 @@
 	class bound_conditions {
 	public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
 	
-	bound_conditions(){};
-	//virtual std::vector<double> operator() bounds(mesh grid, parameters param, Payoff* option, std::vector<double> K_neuman ={0,0,0,0}) = 0;
+	bound_conditions();
+	
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option, std::vector<double> K_neuman);
 	~bound_conditions();
 	
-	const std::vector<double> get_upper_border();
-	const std::vector<double> get_lower_border();
+	const std::vector<std::vector<double>> get_matrix();
 	
-	std::vector<double>  boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions*bound_func, std::vector<double> K_neuman ={0,0,0,0});
+	static std::vector<std::vector<double>>   boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman ={0,0,0,0});
 	//this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
 
 	private:
 	
-	std::vector<double> upper_conditions;
-	std::vector<double> lower_conditions;
+	std::vector<std::vector<double>> Matrix_conditions;
 		
 	};
 	
-	class Neumann : public bound_conditions {
+	class Neumann : public  bound_conditions {
 		
+	public:
 	Neumann(){};
 		
-	virtual std::vector<double> operator() (mesh grid, Parameters param, PayOff* option,std::vector<double> K_neuman ={0,0,0,0});
-		
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 	
-	}
+	
+	private: 
+	
+	std::vector<double> K_neuman; 
+	
+	};
 	
 	class Derichtlet: public bound_conditions {
+		
+	public:
 	
 	Derichtlet(){};
-	virtual std::vector<double> operator() (mesh grid, Parameters param, PayOff* option,std::vector<double> K_neuman ={0,0,0,0});
+	
+	std::vector<std::vector<double>>  operator() (mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+
+	private: 
+	
+	std::vector<double> K_neuman; 
 		
-		
-		
-		
-		
-	}
+	};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
