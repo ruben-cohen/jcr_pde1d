@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 	
 	//test of the boundaries : 
 	Parameters par(v, r, theta_);
-	// std::vector<double> K_v{1.,2.,3.,4.};
+	std::vector<double> K_v{0.1,0.1,0.1,0.1};
 	// bound_conditions* neu = new Neumann();
 	//std::vector<double> K_d{0.,0.,0.,0.};
 	
@@ -35,6 +35,8 @@ int main(int argc, char* argv[])
 	//double born_min = 0;
 	//bound_conditions* der = new Derichtlet();
 	Derichtlet c(m,grille,par,option);
+	
+	Neumann c2(m,grille,par,option, K_v);
 	//(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 	
 	
@@ -82,6 +84,8 @@ int main(int argc, char* argv[])
 	std::cout << grille.getdt() << std::endl;
 	std::cout<< "vecteur dirichlet:" << std::endl;
 	print(c.get_cond());
+	std::cout<< "vecteur Neumann:" << std::endl;
+	print(c2.get_cond());
 	//delete bs_pde;
 	delete option;
 	// delete neu;

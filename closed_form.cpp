@@ -299,7 +299,105 @@
 	std::vector<double> Derichtlet::get_cond() const
 	{
 		return matrix_derichtlet;
-	}
+	};
+	
+	Neumann::Neumann(PDE payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& const_vector)
+	:bound_conditions(payoff,grille,param,option)
+	{
+		
+		double dt = grid.getdt();
+		double dx = grid.getdx(); //need the stock step 
+		double sigma = param.Get_Vol(); //to get the volatility 
+		double rate = param.Get_Rate(); //the get the rate 
+		double theta = param.Get_Theta(); //to get the theta 
+		size_t size_vec = grid.Getvector_time().size();
+		double maturity = grid.Getvector_time().back();
+		double S0 = grid.get_Spot();
+		size_t size_spot = grid.Getvector_stock().size();
+		double r = param.Get_Rate();
+		std::vector<double>  _init_cond = payoff.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
+		
+		//double f_0_T = _init_cond[0]*exp(-maturity*rate); //first element of the vector is the payoff at min S and maturity 
+		double f_0_T = _init_cond[0];
+		// double f_N_T = _init_cond.back()*exp(-maturity*rate); //last element is the payoff at max S and maturity 
+		double f_N_T = _init_cond.back();
+		
+		   double K1 = const_vector[0];
+		   double K2 = const_vector[1];
+		   double K3 = const_vector[2];
+		   double K4 = const_vector[3];
+		   
+		double coef_ =(1 - dt*(1-theta)*rate)/(1+ dt*theta*rate);
+		double coef_K1_K2 = -dt*((-pow(sigma,2)*K1)/2 + (pow(sigma,2)/2 - rate)*K2)/(1+ dt*theta*rate);
+		double coef_K3_K4 = -dt*((-pow(sigma,2)*K3)/2 + (pow(sigma,2)/2 - rate)*K4)/(1+ dt*theta*rate);
+		
+		matrix_neumann.resize(size_vec);
+		matrix_neumann.push_back(f_0_T*exp(-maturity*rate));
+		matrix_neumann.resize(size_vec*2);
+		matrix_neumann.push_back(f_N_T*exp(-maturity*rate));
+		
+		for (size_t it = size_vec-1; it != 0; it--)
+		{
+		      //reverse iterator to fill the vector from the end to the beginning
+			  
+			  
+			  size_t tt = size_vec + it;
+			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2)*exp(-r*dt*it);
+			
+			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-r*dt*it);
+		 }
+
+		// std::vector<double> upper_conditions(size_vec); 
+		// std::vector<double> lower_conditions(size_vec); 
+		
+		// std::fill (upper_conditions.begin(),upper_conditions.end()-1,0);   // we fill the vector with 0 at time 1 to T-1 
+		// upper_conditions.back() = f_0_T*exp(-maturity*rate);
+		// std::fill (lower_conditions.begin(),lower_conditions.end()-1,0);
+		// lower_conditions.back() = f_N_T*exp(-maturity*rate);
+		
+		// // double beta_left =  dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+		// // double beta_right = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (rate)/(2*dx);
+		
+		// // double alpha_left = dt*theta*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+		// // double alpha = -dt*(1-theta)*(-sigma**2)/(2*dx**2) + (sigma**2)/(4*dx**2) + (-rate)/(2*dx);
+		
+
+		
+		// for (unsigned it = upper_conditions.size(); it != 0; it--)
+		// {
+		// // reverse iterator to fill the vector from the end to the beginning
+			
+			// upper_conditions[it]  = coef_*upper_conditions[it-1] + coef_K1_K2; //
+			
+			// lower_conditions[it] = coef_*lower_conditions[it-1] + coef_K3_K4;
+		// }
+
+		// std::vector<std::vector<double>> matrix_neumann(size_spot,std::vector<double> (size_vec));
+		  
+		// matrix_neumann.front() = upper_conditions;
+		
+		// for (int i = 1; i < size_spot-1; i++){
+			
+			// std::vector<double> row_0;
+			
+			// row_0.resize(size_vec,0.0);
+			
+			// matrix_neumann.push_back(row_0);
+		// }
+		
+		// matrix_neumann.push_back(lower_conditions);
+		
+		// std::vector<std::vector<double>> Matrix_conditions(matrix_neumann);
+		
+		// return matrix_neumann;
+		
+			
+	};
+	
+    std::vector<double> Neumann::get_cond() const
+	{
+		return matrix_neumann;
+	};
 	
 	// std::vector<std::vector<double>>   bound_conditions::boundaries_compute(mesh grid, Parameters param, PayOff* option, bound_conditions* bound_func, std::vector<double> K_neuman){
 		
