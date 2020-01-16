@@ -28,47 +28,9 @@ int main(int argc, char* argv[])
 	//test of the boundaries : 
 	Parameters par(v, r, theta_);
 	std::vector<double> K_v{0.1,0.1,0.1,0.1};
-	// bound_conditions* neu = new Neumann();
-	//std::vector<double> K_d{0.,0.,0.,0.};
-	
-	//double born_sup = 100;
-	//double born_min = 0;
-	//bound_conditions* der = new Derichtlet();
+
 	Derichtlet c(m,grille,par,option);
-	
 	Neumann c2(m,grille,par,option, K_v);
-	//(PDE _payoff, mesh grid, Parameters param, PayOff* option);
-	
-	
-	// std::vector<std::vector<double>> der_matrix  = bound_conditions::boundaries_compute(grille,par,option,der, K_d);
-	
-	// // std::vector<std::vector<double>> neu_matrix = bound_conditions::boundaries_compute(grille,par,option,neu, K_v);
-	
-	// std::cout<< "Derichtlet conditions matrix" << std::endl;
-	
-	// for(size_t i = 0; i< der_matrix.size(); i++){
-		
-		// for (size_t j = 0; j < der_matrix[i].size(); j++){
-		
-		// std::cout<< der_matrix[i][j] ;
-		
-		// }
-		
-		// std::cout<< " \n" << std::endl;
-	// }
-	
-	// std::cout<< "Neumann conditions matrix" << std::endl;
-	
-	// for(size_t i = 0; i<neu_matrix.size(); i++){
-		
-		// for (size_t j = 0; j < neu_matrix[i].size(); j++){
-		
-		// std::cout<<neu_matrix[i][j] ;
-		
-		// }
-		
-		// std::cout<< " \n" << std::endl;
-	// }
 	
 	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << m.init_cond(S) << std::endl;
