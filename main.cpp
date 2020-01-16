@@ -11,8 +11,6 @@ int main(int argc, char* argv[])
 	double r = 0.05;   // Risk-free rate (5%)
 	double v = 0.2;    // Volatility of the underlying (20%)
 	double T = 1.00;    // One year until expiry
-	double res = 0.;
-	double res_2 = 0.;
 	double theta_ = 0.5;
 	
 	// mesh discretisation parameters
@@ -28,19 +26,23 @@ int main(int argc, char* argv[])
 	PDE m(option,grille.getdx(),grille.getdt(),grille.Getvector_time(),grille.Getvector_stock());
 	
 	//test of the boundaries : 
-	// Parameters par(v, r, theta_);
+	Parameters par(v, r, theta_);
 	// std::vector<double> K_v{1.,2.,3.,4.};
 	// bound_conditions* neu = new Neumann();
-	// std::vector<double> K_d{0.,0.,0.,0.};
-	// bound_conditions* der = new Derichtlet();
+	//std::vector<double> K_d{0.,0.,0.,0.};
 	
+	//double born_sup = 100;
+	//double born_min = 0;
+	//bound_conditions* der = new Derichtlet();
+	Derichtlet c(m,grille,par,option);
+	//(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 	
 	
 	// std::vector<std::vector<double>> der_matrix  = bound_conditions::boundaries_compute(grille,par,option,der, K_d);
 	
-	// std::vector<std::vector<double>> neu_matrix = bound_conditions::boundaries_compute(grille,par,option,neu, K_v);
+	// // std::vector<std::vector<double>> neu_matrix = bound_conditions::boundaries_compute(grille,par,option,neu, K_v);
 	
-	//std::cout< "Derichtlet conditions matrix" < std::endl;
+	// std::cout<< "Derichtlet conditions matrix" << std::endl;
 	
 	// for(size_t i = 0; i< der_matrix.size(); i++){
 		
@@ -66,14 +68,24 @@ int main(int argc, char* argv[])
 		// std::cout<< " \n" << std::endl;
 	// }
 	
+	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << m.init_cond(S) << std::endl;
-	//print(m.get_init_vector());
+	std::cout<< "Vecteur de prix (log):" << std::endl;
 	print(grille.Getvector_stock());
+	std::cout<< "Vecteur de temps:" << std::endl;
 	print(grille.Getvector_time());
+	std::cout<< "Vecteur cond init (log):" << std::endl;
 	print(m.get_init_vector());
+	std::cout<< "dx:" << std::endl;
 	std::cout << grille.getdx() << std::endl;
+	std::cout<< "dt:" << std::endl;
+	std::cout << grille.getdt() << std::endl;
+	std::cout<< "vecteur dirichlet:" << std::endl;
+	print(c.get_cond());
 	//delete bs_pde;
 	delete option;
+	// delete neu;
+	//delete der;
 
 	return 0;
 	
