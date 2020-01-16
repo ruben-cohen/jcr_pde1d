@@ -181,6 +181,23 @@ void print(const std::vector<double>& v);
 		//std::vector<double> K_neuman; 
 		
 	};
+	
+	
+	class Neumann: public bound_conditions 
+	{
+		
+		public:
+		
+			Neumann(PDE _payoff, mesh _grid, Parameters _param, PayOff* _option, std::vector<double>& const_vector);
+			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
+			 std::vector<double> get_cond() const;
+
+			std::vector<double> matrix_neumann;
+			
+		//std::vector<double> K_neuman; 
+		
+	};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
