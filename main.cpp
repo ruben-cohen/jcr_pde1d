@@ -20,26 +20,26 @@ int main(int argc, char* argv[])
 	// Create the PayOff object (strike as parameter)
 	PayOff* option = new PayOffCall(K);
 	// Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
-	mesh grille(S,T,v,nb_step_time,nb_step_spot);
+	mesh grille(S,T,v,nb_step_time,nb_step_spot,option);
 	
 	//Create PDE object (to solve the problem, we provide to the class, the grid previoulsy defined in the class PDE) 
-	PDE m(option,grille.getdx(),grille.getdt(),grille.Getvector_time(),grille.Getvector_stock());
+	//PDE m(option,grille.getdx(),grille.getdt(),grille.Getvector_time(),grille.Getvector_stock());
 	
 	//test of the boundaries : 
 	Parameters par(v, r, theta_);
 	std::vector<double> K_v{0.1,0.1,0.1,0.1};
 
-	Derichtlet c(m,grille,par,option);
-	Neumann c2(m,grille,par,option, K_v);
-	
+	Derichtlet c(grille,par);
+	Neumann c2(grille,par,K_v);
+	print(K_v);
 	std::cout<< "fonction calcul cond init:" << std::endl;
-	std::cout << m.init_cond(S) << std::endl;
+	std::cout << grille.init_cond(S) << std::endl;
 	std::cout<< "Vecteur de prix (log):" << std::endl;
 	print(grille.Getvector_stock());
 	std::cout<< "Vecteur de temps:" << std::endl;
 	print(grille.Getvector_time());
 	std::cout<< "Vecteur cond init (log):" << std::endl;
-	print(m.get_init_vector());
+	print(grille.get_init_vector());
 	std::cout<< "dx:" << std::endl;
 	std::cout << grille.getdx() << std::endl;
 	std::cout<< "dt:" << std::endl;
@@ -48,10 +48,9 @@ int main(int argc, char* argv[])
 	print(c.get_cond());
 	std::cout<< "vecteur Neumann:" << std::endl;
 	print(c2.get_cond());
-	//delete bs_pde;
+
 	delete option;
-	// delete neu;
-	//delete der;
+
 
 	return 0;
 	

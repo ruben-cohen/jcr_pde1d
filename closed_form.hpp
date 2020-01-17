@@ -46,14 +46,17 @@
 	
 	public: 
 	
-		mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const long& steps);
+		mesh(const double& spot, const double& maturity, const double& volatility,const long& time_step,const long& steps, PayOff* _option);
 		~mesh();
+		PayOff* option;
 		
 		std::vector<double> Getvector_time() const;
 		std::vector<double> Getvector_stock() const;
 		double getdx() const;
 		double getdt() const;
 		double get_Spot() const;
+		double init_cond(const double& x) const;
+		std::vector<double> get_init_vector() const;
 	
 	
 	private: 
@@ -65,28 +68,12 @@
 		double m_spot;
 		long m_steps;
 		long m_time_step;
+		std::vector<double> m_init_vector;
+		
 	};
 	
+//Method to print vector content
 void print(const std::vector<double>& v);
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// PDE Solver	
-	class PDE
-	{
-		public: 
-			
-			PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector);
-			PayOff* option;
-			~PDE();
-			//To compute the payoff we want to implement (at maturity)
-			double init_cond(const double& x) const;
-			std::vector<double> get_init_vector() const;
-			
-		private:
-		
-			std::vector<double> m_init_vector;
-		
-	
-	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // paramaters 
@@ -113,7 +100,7 @@ void print(const std::vector<double>& v);
 	{
 		public:
 		
-			bound_conditions(PDE _payoff, mesh _grid, Parameters _param, PayOff* _option);
+			bound_conditions(mesh _grid, Parameters _param);
 			
 			//std::vector<double> cond() const;
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option);
@@ -121,13 +108,9 @@ void print(const std::vector<double>& v);
 		
 		protected:
 		
-			PDE m_payoff;
 			mesh m_grille;
 			Parameters m_param;
-			PayOff* m_option;
-
-
-
+	
 		//private:
 		
 		//std::vector<std::vector<double>> Matrix_conditions;
@@ -138,7 +121,7 @@ void print(const std::vector<double>& v);
 		
 		public:
 		
-			Derichtlet(PDE _payoff, mesh _grid, Parameters _param, PayOff* _option);
+			Derichtlet(mesh _grid, Parameters _param);
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 			 std::vector<double> get_cond() const;
@@ -155,7 +138,7 @@ void print(const std::vector<double>& v);
 		
 		public:
 		
-			Neumann(PDE _payoff, mesh _grid, Parameters _param, PayOff* _option, std::vector<double>& const_vector);
+			Neumann(mesh _grid, Parameters _param, std::vector<double>& const_vector);
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 			 std::vector<double> get_cond() const;
@@ -169,6 +152,27 @@ void print(const std::vector<double>& v);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// // PDE Solver	
+	// // class PDE
+	// // {
+		// // public: 
+			
+			// // PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector);
+			// // PayOff* option;
+			// // ~PDE();
+			// //To compute the payoff we want to implement (at maturity)
+			// // double init_cond(const double& x) const;
+			// // std::vector<double> get_init_vector() const;
+			
+		// // private:
+		
+			// // std::vector<double> m_init_vector;
+		
+	
+	// // };
+
 	
 // class VanillaOption 
 	// {
