@@ -25,8 +25,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh Class
 	//This class builds the mesh, giving dt, dS, and the axes of the mesh as output
-	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const long& steps)
+	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const long& steps,PayOff* _option)
 	:
+	 option(_option),
 	 m_dt(maturity/time_step),
 	 m_spot(spot),
 	 m_steps(steps),
@@ -51,28 +52,44 @@
 		{
 			m_vector_time.push_back(j*m_dt);	
 		}
+		
+		size_t nb_step = m_vector_stock.size();
+		//std::vector<double> m_init_vector(nb_step);
+		
+		for (std::size_t i = 0; i < nb_step ; ++i)
+		{
+			m_init_vector.push_back(init_cond(exp(m_vector_stock[i])));
+		}
 	};
-	//Destructor
-	mesh::~mesh() {};
+
 		
 	//Multiple Get methods to return private variables of the class
-	
+
+
 	//useful to get the vector of time from the mesh 
 	std::vector<double> mesh::Getvector_time()const
 	{
-			return m_vector_time;
+		return m_vector_time;
 	}; 
 	//useful to get the vector of stock path from the mesh 
 	std::vector<double> mesh::Getvector_stock() const
 	{
 		return m_vector_stock;
 	}; 
+	double mesh::init_cond(const double& x) const 
+	{
+	  return option->operator()(x);
+	};
 	
 	//we will need to get the dx for CN algo	
 	double mesh::getdx() const
 	{
 		return m_dx;
-	};  
+	}; 
+	std::vector<double> mesh::get_init_vector() const //const forbid to modify the state of my object
+    {
+        return m_init_vector;
+    };
 	
 	// we will need the dt for CN algo 
 	double mesh::getdt() const
@@ -85,33 +102,9 @@
 		return m_spot;
 	};
 	
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// PDE Solver
-
-	PDE::PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector)
-	:option(_option)
-	{
-		size_t nb_step = spot_vector.size();
-		//std::vector<double> m_init_vector(nb_step);
-		for (std::size_t i = 0; i < nb_step ; ++i)
-		{
-			m_init_vector.push_back(init_cond(exp(spot_vector[i])));
-		}
-		
-	};
-
-	// Initial condition (vanilla call option), we compute just the payoff created 
-	// x parameter stands for the spot
-	double PDE::init_cond(const double& x) const 
-	{
-	  return option->operator()(x);
-	};
-	std::vector<double> PDE::get_init_vector() const //const forbid to modify the state of my object
-    {
-		//m_nb_rows = 0;
-        return m_init_vector;
-    };
-
+	//Destructor
+	mesh::~mesh() {};
+	
     void print(const std::vector<double>& v)
     {
         for(size_t i = 0; i < v.size(); ++i)
@@ -120,8 +113,7 @@
         }
         std::cout << std::endl;
     };
-	//Destructor
-	PDE::~PDE() {};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //parameters 
 
@@ -150,17 +142,15 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Boundaries	
 	
-	bound_conditions::bound_conditions(PDE _payoff, mesh _grid, Parameters _param, PayOff* _option)
+	bound_conditions::bound_conditions(mesh _grid, Parameters _param)
 	:
-	 m_option(_option),
 	 m_grille(_grid),
-	 m_param(_param),
-	 m_payoff(_payoff)	 
+	 m_param(_param)
 	 {};
 	
-	Derichtlet::Derichtlet(PDE m_payoff, mesh m_grid, Parameters m_param, PayOff* m_option)
+	Derichtlet::Derichtlet(mesh m_grid, Parameters m_param)
 	:
-	 bound_conditions(m_payoff,m_grid,m_param,m_option)
+	 bound_conditions(m_grid,m_param)
 	{
 		//From mesh object
 		double dt = m_grid.getdt();
@@ -177,7 +167,7 @@
 		double r = m_param.Get_Rate();
 		
 		//From PDE object
-		std::vector<double>  _init_cond = m_payoff.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
+		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
 		double f_0_T = _init_cond[0];
 		double f_N_T = _init_cond.back();
 		
@@ -196,8 +186,8 @@
 		return matrix_derichtlet;
 	};
 	
-	Neumann::Neumann(PDE m_payoff, mesh m_grid, Parameters m_param, PayOff* m_option,std::vector<double>& const_vector)
-	:bound_conditions(m_payoff,m_grille,m_param,m_option)
+	Neumann::Neumann( mesh m_grid, Parameters m_param,std::vector<double>& const_vector)
+	:bound_conditions(m_grille,m_param)
 	{
 		//From mesh object
 		double dt = m_grid.getdt();
@@ -214,7 +204,7 @@
 		double r = m_param.Get_Rate();
 		
 		//From PDE object
-		std::vector<double>  _init_cond = m_payoff.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
+		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
 		double f_0_T = _init_cond[0];
 		double f_N_T = _init_cond.back();
 		
@@ -246,11 +236,42 @@
 	{
 		return matrix_neumann;
 	};
-	
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// PDE Solver
+
+	// PDE::PDE(PayOff* _option, const double& dx,const double& dt,const std::vector<double>& time_vector,const std::vector<double>& spot_vector)
+	// :option(_option)
+	// {
+		// size_t nb_step = spot_vector.size();
+		// //std::vector<double> m_init_vector(nb_step);
+		// for (std::size_t i = 0; i < nb_step ; ++i)
+		// {
+			// m_init_vector.push_back(init_cond(exp(spot_vector[i])));
+		// }
+		
+	// };
+
+	// // Initial condition (vanilla call option), we compute just the payoff created 
+	// // x parameter stands for the spot
+	// double PDE::init_cond(const double& x) const 
+	// {
+	  // return option->operator()(x);
+	// };
+	// std::vector<double> PDE::get_init_vector() const //const forbid to modify the state of my object
+    // {
+		// //m_nb_rows = 0;
+        // return m_init_vector;
+    // };
+
+
+	// //Destructor
+	// PDE::~PDE() {};
+
+
 	
 
     // double ncdf(double x)
