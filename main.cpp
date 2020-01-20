@@ -1,6 +1,16 @@
 #include <iostream>
 #include "closed_form.hpp"
 #include <vector>
+//#include "Resolution.hpp"
+#include <cmath>
+//Allows to create and manipulate xarrays
+#include "xtensor/xarray.hpp"
+#include "xtensor/xio.hpp"
+#include "xtensor/xview.hpp"
+#include "xtensor/xadapt.hpp"
+#include "xtensor/xeval.hpp"
+//Allows to perform linear algebra operations on xarrays
+#include "xtensor-blas/xlinalg.hpp"
 
 ////
 int main(int argc, char* argv[])
@@ -32,6 +42,17 @@ int main(int argc, char* argv[])
 	Derichtlet c(grille,par);
 	Neumann c2(grille,par,K_v);
 	print(K_v);
+	
+	std::vector<double> der = c.get_cond();
+	
+	Solve sv(grille, par, der);
+	
+	xt::xarray<double> price = sv.Get_FX_n();
+	
+	//price.reshape({grille.Getvector_stock().size(),1});
+	
+	std::cout<< "solver" << std::endl;
+	//std::cout << price << std::endl;
 	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << grille.init_cond(S) << std::endl;
 	std::cout<< "Vecteur de prix (log):" << std::endl;
@@ -50,6 +71,7 @@ int main(int argc, char* argv[])
 	print(c2.get_cond());
 
 	delete option;
+
 
 
 	return 0;
