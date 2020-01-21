@@ -4,14 +4,17 @@
 #include <vector>
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
 //Allows to create and manipulate xarrays
+#include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xview.hpp"
 #include "xtensor/xadapt.hpp"
 #include "xtensor/xeval.hpp"
-//Allows to perform linear algebra operations on xarrays
+// Allows to perform linear algebra operations on xarrays
 #include "xtensor-blas/xlinalg.hpp"
+
 ////
+
 
 //Payoff Class
 	class PayOff 
@@ -158,7 +161,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		//std::vector<double> K_neuman; 
 		
 	};
-	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Solve
     {
         
@@ -166,19 +169,18 @@ class Solve
 
       Solve(mesh _grid, Parameters _param, std::vector<double>& conditions);
 		
-		~Solve();
+		//~Solve();
 		
 		xt::xarray<double> Get_FX_n() const; //to get the price at step n;
 		
-	protected:
-		
-	mesh m_grille;
-	Parameters m_param;
+
 		
 	private: 
 	
+	mesh m_grid;
+	Parameters m_param;
 	xt::xarray<double> _FX_n; // vector of price at n 
-	std::vector<double> conditions;
+	//std::vector<double> conditions;
         
         //double dt; //to get the time step
         //double dx; //to get the stock value step

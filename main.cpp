@@ -4,13 +4,14 @@
 //#include "Resolution.hpp"
 #include <cmath>
 //Allows to create and manipulate xarrays
-#include "xtensor/xarray.hpp"
-#include "xtensor/xio.hpp"
-#include "xtensor/xview.hpp"
-#include "xtensor/xadapt.hpp"
-#include "xtensor/xeval.hpp"
-//Allows to perform linear algebra operations on xarrays
+// #include "xtensor/xarray.hpp"
+// #include "xtensor/xio.hpp"
+// #include "xtensor/xview.hpp"
+// #include "xtensor/xadapt.hpp"
+// #include "xtensor/xeval.hpp"
+// // Allows to perform linear algebra operations on xarrays
 #include "xtensor-blas/xlinalg.hpp"
+
 
 ////
 int main(int argc, char* argv[])
@@ -27,6 +28,7 @@ int main(int argc, char* argv[])
 	long nb_step_spot =20;    // Spot goes from [0.0, 1.0]
 	long nb_step_time = 20; 
 	
+	xt::xarray<double> diago = xt::eye(20,-1);
 	// Create the PayOff object (strike as parameter)
 	PayOff* option = new PayOffCall(K);
 	// Create the mesh object (parameters (S,Vol, Nb time step, nb stock step)
@@ -37,20 +39,24 @@ int main(int argc, char* argv[])
 	
 	//test of the boundaries : 
 	Parameters par(v, r, theta_);
-	std::vector<double> K_v{0.1,0.1,0.1,0.1};
-
+	//std::vector<double> K_v{0.1,0.1,0.1,0.1};
+	//std::vector<double> K_v2{0.1,0.1,0.1,0.1};
 	Derichtlet c(grille,par);
-	Neumann c2(grille,par,K_v);
-	print(K_v);
-	
+	//Neumann c2(grille,par,K_v);
+	//print(K_v);
+	xt::xtensor<double, 1> K_v = {0.1, 0.1, 0.1, 0.1 };
+	xt::xtensor<double, 1> K_v2 = {0.1, 0.1, 0.1, 0.1 };
+	xt::xarray<double> res = xt::linalg::dot(K_v, K_v2);
 	std::vector<double> der = c.get_cond();
+	std::cout<< res()<< std::endl;
+	//xt::xarray<double> res = xt::linalg::dot(K_v, K_v2);
 	
-	Solve sv(grille, par, der);
+	//Solve sv(grille, par, der);
 	
-	xt::xarray<double> price = sv.Get_FX_n();
+	//xt::xarray<double> price = sv.Get_FX_n();
 	
 	//price.reshape({grille.Getvector_stock().size(),1});
-	
+	std::cout<< diago << std::endl;
 	std::cout<< "solver" << std::endl;
 	//std::cout << price << std::endl;
 	std::cout<< "fonction calcul cond init:" << std::endl;
@@ -67,8 +73,8 @@ int main(int argc, char* argv[])
 	std::cout << grille.getdt() << std::endl;
 	std::cout<< "vecteur dirichlet:" << std::endl;
 	print(c.get_cond());
-	std::cout<< "vecteur Neumann:" << std::endl;
-	print(c2.get_cond());
+	// std::cout<< "vecteur Neumann:" << std::endl;
+	// print(c2.get_cond());
 
 	delete option;
 
