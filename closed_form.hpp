@@ -4,14 +4,14 @@
 #include <vector>
 #include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
 //Allows to create and manipulate xarrays
-#include "xtensor/xtensor.hpp"
+/* #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xview.hpp"
 #include "xtensor/xadapt.hpp"
-#include "xtensor/xeval.hpp"
+#include "xtensor/xeval.hpp" */
 // Allows to perform linear algebra operations on xarrays
-#include "xtensor-blas/xlinalg.hpp"
+//#include "xtensor-blas/xlinalg.hpp"
 
 ////
 
@@ -91,7 +91,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // paramaters 
 	
-	class Parameters { 
+/* 	class Parameters { 
 	public:
 		Parameters(double vol, double rate, double theta);
 		double Get_Vol() const;
@@ -104,7 +104,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		double pa_vol;
 		double pa_Rate;
 		double pa_Theta;
-	};
+	}; */
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // boundaries class
@@ -113,7 +113,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 	{
 		public:
 		
-			bound_conditions(mesh _grid, Parameters _param);
+			bound_conditions(mesh _grid);
 			
 			//std::vector<double> cond() const;
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option);
@@ -122,7 +122,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		protected:
 		
 			mesh m_grille;
-			Parameters m_param;
+			//Parameters m_param;
 	
 		//private:
 		
@@ -134,7 +134,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		
 		public:
 		
-			Derichtlet(mesh _grid, Parameters _param);
+			Derichtlet(mesh m_grid, std::vector<double> rate);
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 			 std::vector<double> get_cond() const;
@@ -151,7 +151,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		
 		public:
 		
-			Neumann(mesh _grid, Parameters _param, std::vector<double>& const_vector);
+			Neumann(mesh m_grid, double theta, std::vector<double> sigma, std::vector<double> rate,std::vector<double>& const_vector);
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 			 std::vector<double> get_cond() const;
@@ -162,7 +162,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		
 	};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Solve
+/* class Solve
     {
         
     public:
@@ -194,7 +194,7 @@ class Solve
         //Iterates on each time step of the grid to solve the equation. Beginning from time T-1 and solving for time 1
 
     };
-	
+	 */
 	
 	
 

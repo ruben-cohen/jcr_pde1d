@@ -144,7 +144,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //parameters 
-
+/* 
 	Parameters::Parameters(double vol, double rate, double theta)
 		:
 		 pa_vol(vol), 
@@ -166,20 +166,20 @@
 	};
 	Parameters::~Parameters() {
 
-	};
+	}; */
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Boundaries	
 	
-	bound_conditions::bound_conditions(mesh _grid, Parameters _param)
+	bound_conditions::bound_conditions(mesh _grid)
 	:
-	 m_grille(_grid),
-	 m_param(_param)
+	 m_grille(_grid)
+	 //,m_param(_param)
 	 {};
 	 
 	
-	Derichtlet::Derichtlet(mesh m_grid, Parameters m_param)
+	Derichtlet::Derichtlet(mesh m_grid, std::vector<double>& rate)
 	:
-	 bound_conditions(m_grid,m_param)
+	 bound_conditions(m_grid)
 	{
 		//From mesh object
 		double dt = m_grid.getdt();
@@ -190,10 +190,10 @@
 		size_t size_spot = m_grid.Getvector_stock().size();
 		
 		//From parametre object
-		double sigma = m_param.Get_Vol(); //to get the volatility 
-		double rate = m_param.Get_Rate(); //the get the rate 
-		double theta = m_param.Get_Theta(); //to get the theta 
-		double r = m_param.Get_Rate();
+		//double sigma = m_param.Get_Vol(); //to get the volatility 
+		//double rate = m_param.Get_Rate(); //the get the rate 
+		//double theta = m_param.Get_Theta(); //to get the theta 
+		//double r = m_param.Get_Rate();
 		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
@@ -205,8 +205,8 @@
 		
 		for(size_t i = 0; i < size_vec; ++i)
         {
-            matrix_derichtlet[i] = f_0_T*exp(-r*dt*i); // for here
-			matrix_derichtlet[size_vec+i] = f_N_T*exp(-r*dt*i);
+            matrix_derichtlet[i] = f_0_T*exp(-rate[i]*dt*i); // for here
+			matrix_derichtlet[size_vec+i] = f_N_T*exp(-rate[i]*dt*i);
         }
 	};
 	
@@ -215,8 +215,8 @@
 		return matrix_derichtlet;
 	};
 	
-	Neumann::Neumann( mesh m_grid, Parameters m_param,std::vector<double>& const_vector)
-	:bound_conditions(m_grille,m_param)
+	Neumann::Neumann( mesh m_grid, double theta, std::vector<double> sigma, std::vector<double> rate,std::vector<double>& const_vector)
+	:bound_conditions(m_grille)
 	{
 		//From mesh object
 		double dt = m_grid.getdt();
@@ -227,10 +227,10 @@
 		size_t size_spot = m_grid.Getvector_stock().size();		
 		
 		//From parametre object
-		double sigma = m_param.Get_Vol(); //to get the volatility 
-		double rate = m_param.Get_Rate(); //the get the rate 
-		double theta = m_param.Get_Theta(); //to get the theta 
-		double r = m_param.Get_Rate();
+		//double sigma = m_param.Get_Vol(); //to get the volatility 
+		//double rate = m_param.Get_Rate(); //the get the rate 
+		//double theta = m_param.Get_Theta(); //to get the theta 
+		//double r = m_param.Get_Rate();
 		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
@@ -242,9 +242,9 @@
 	    double K3 = const_vector[2];
 	    double K4 = const_vector[3];
 		   
-		double coef_ =(1 - dt*(1-theta)*rate)/(1+ dt*theta*rate);
-		double coef_K1_K2 = -dt*((-pow(sigma,2)*K1)/2 + (pow(sigma,2)/2 - rate)*K2)/(1+ dt*theta*rate);
-		double coef_K3_K4 = -dt*((-pow(sigma,2)*K3)/2 + (pow(sigma,2)/2 - rate)*K4)/(1+ dt*theta*rate);
+		double coef_; 
+		double coef_K1_K2; 
+		double coef_K3_K4; 
 		
 		matrix_neumann.resize(size_vec);
 		matrix_neumann.push_back(f_0_T*exp(-maturity*rate));
@@ -255,9 +255,15 @@
 		{
 		      //reverse iterator to fill the vector from the end to the beginning
 			  size_t tt = size_vec + it;
-			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2)*exp(-r*dt*it);
+			  
+			  		coef_ =(1 - dt*(1-theta)*rate[it])/(1+ dt*theta*rate[it]);
+					coef_K1_K2 = -dt*((-pow(sigma[it],2)*K1)/2 + (pow(sigma[it],2)/2 - rate)*K2)/(1+ dt*theta*rate[it]);
+					coef_K3_K4 = -dt*((-pow(sigma[it],2)*K3)/2 + (pow(sigma[it],2)/2 - rate)*K4)/(1+ dt*theta*rate[it]);
+					
+					
+			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2)*exp(-rate[it]*dt*it);
 			
-			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-r*dt*it);
+			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-r[it]*dt*it);
 		 }
 	};
 	
@@ -267,7 +273,7 @@
 	};
 	
 	
- Solve::Solve(mesh _grid, Parameters _param, std::vector<double>& conditions)
+/*  Solve::Solve(mesh _grid, Parameters _param, std::vector<double>& conditions)
  :
 	m_grid(_grid),
 	m_param(_param)
@@ -344,9 +350,9 @@
 
 xt::xarray<double> Solve::Get_FX_n() const 
 {
-	return _FX_n;
-};
-
+	//return _FX_n;
+//};
+ */
 //Solve::~Solve(){}; //destructor of the solve object 
 
 
