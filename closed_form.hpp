@@ -88,24 +88,7 @@ void print(const std::vector<double>& v);
 //Method to transform the vector boundaries into matrix for resolution;
 std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_rows);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// paramaters 
-	
-/* 	class Parameters { 
-	public:
-		Parameters(double vol, double rate, double theta);
-		double Get_Vol() const;
-		double Get_Rate() const;
-		double Get_Theta() const;
-		~Parameters();
 
-	private:
-		
-		double pa_vol;
-		double pa_Rate;
-		double pa_Theta;
-	}; */
-	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // boundaries class
 	
@@ -134,7 +117,7 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 		
 		public:
 		
-			Derichtlet(mesh m_grid, std::vector<double> rate);
+			Derichtlet(const mesh& m_grid, const std::vector<double>& rate);
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
 			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
 			 std::vector<double> get_cond() const;
@@ -160,6 +143,87 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 			
 		//std::vector<double> K_neuman; 
 		
+	};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	class volatility 
+	{
+	
+	public: 
+		//Constructor
+		volatility(const double& v,const mesh& grid); //Constructor, base class only takes initial value as input
+		
+		//Method to compute a vol (vol const donc les deux coeffs valent zéro)
+		double compute_vol(const double& S = 0.,const double& t = 0.,const double& x = 0.,const double& y = 0.); //To compute a vol
+		//Method to compute vector or vol (for one step of time)
+		std::vector<double> vector_vol(const std::vector<double> v_spot,const double& t);
+		
+	private:
+	
+		std::vector<double> m_vol_const;
+
+	
+	protected:
+		
+		std::vector<double> m_vector_time;
+		std::vector<double> m_vector_stock;
+		std::size_t m_nb_time;
+		std::size_t m_nb_spot;	
+		double m_init_vol;
+		mesh m_grid;
+		
+	};
+	 //Classe ou on va dire que la volatility est fonction du temps et du spot
+	//On pourra créer ainsi d'autres classes avec différents comportement pour la vol (e.g. seulement une fonction du temps)
+	class vol_surface : public volatility
+	{
+	public:
+	
+		//Niveau paramètre, la classe prends en plus les deux coeff pour définit la fonction
+		vol_surface(const double& v, mesh grid, const double& coeff_tps, const double& coeff_spot);
+		
+		//On reprends les mêmes méthodes (du coup la les coeffs ne sont plus constant zéro comme au dessus)
+		double compute_vol(const double& S,const double& t,const double& x,const double& y); 
+		std::vector<double> vector_vol(const std::vector<double> v_spot,const double& t);
+
+		
+	private:
+	
+		double m_coeff_time;
+		double m_coeff_spot;
+		std::vector<double> m_vol_matrix;
+		
+	
+	};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	class solver
+	{
+		public:
+		
+		solver(mesh grid, double theta,const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat, std::vector<std::vector<double>> rate_mat); //constructor of the solver object
+		
+		~solver(); //destructor of the solver object 
+		
+		std::vector<double> Mid_diag_coeff(mesh grid,bool A,double theta,std::vector<double> sigma, std::vector<double> rate); 
+		std::vector<double> Upper_diag_coeff(mesh grid,bool A,double theta,std::vector<double> sigma, std::vector<double> rate);
+		std::vector<double> Lower_diag_coeff(mesh grid, bool A,double theta,std::vector<double> sigma, std::vector<double> rate);
+
+
+		void thomas_algorithm(const std::vector<double>& upper_diag, const std::vector<double>& mid_diag, const std::vector<double>& lower_diag, const std::vector<double>& f_n1,
+		std::vector<double>& f_sol);
+		
+		const std::vector<std::vector<double>> get_price();
+		
+		std::vector<double> BX_vector(std::vector<double> upper, std::vector<double> mid, std::vector<double> low, std::vector<double> bound_diff,std::vector<double> Fn1);
+		//this function will be used to compute at each time step the BX vector 
+		
+		private:
+		
+		mesh m_mesh;
+		std::vector<std::vector<double>> results;
+		
+		//set of function to define the A matrix (3 better than just one huge matrix ?) 
+		//in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
+		// we will get dx and dt from grid class 
 	};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* class Solve
@@ -202,6 +266,24 @@ std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Poubelle
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// paramaters 
+	
+/* 	class Parameters { 
+	public:
+		Parameters(double vol, double rate, double theta);
+		double Get_Vol() const;
+		double Get_Rate() const;
+		double Get_Theta() const;
+		~Parameters();
+
+	private:
+		
+		double pa_vol;
+		double pa_Rate;
+		double pa_Theta;
+	}; */
+	
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // // PDE Solver	
