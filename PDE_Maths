@@ -344,6 +344,38 @@
     \end{equation}   
 
     \noindent We can now substitute equations \ref{Neumann_eq_3} and \ref{Neumann_eq_5} into equation 13 and solve this matrix system just like we did in equation \ref{Solving_eq}.
+    
+    
+\section*{Determination of the greeks}
+    
+Now that we have computed the option value at each point of the grid, we can compute the greeks at time t=0 using the following formulas:  
+\\
+\\
+$\bullet$ \textbf{Delta of the option (forward difference approximation):} 
+\begin{equation*}
+\forall i \in \{1,...,N-1\},     \delta^{0}_{i} = \frac{f^{0}_{i+1} - f^{0}_{i}}{dx} 
+\end{equation*} 
+\\
+$\bullet$ \textbf{Gamma of the option (central difference approximation):} 
+\begin{equation*}
+\forall i \in \{1,...,N-1\},     \gamma^{0}_{i} = \frac{f^{0}_{i+1} - 2.f^{0}_{i} + f^{0}_{i-1}}{dx^{2}} 
+\end{equation*} 
+\\
+$\bullet$ \textbf{Theta of the option (forward difference approximation):} 
+\begin{equation*}
+\forall i \in \{1,...,N-1\},     \theta^{0}_{i} = \frac{f^{0}_{i+1} - f^{0}_{i}}{dt} 
+\end{equation*}  
+\\
+$\bullet$ \textbf{Approach for computing the Vega of the option:} 
+\\
+\\
+Let's consider the value of the option at time 0 for a given value i of the underlying: $f^{0}_{i}$. 
+A simple approach to compute the Vega of the option would then be to compare its value obtained with a volatility $\sigma$ and its value obtained with a volatility $\sigma + \epsilon$. $\epsilon$ represents the level of precision of our computation. 
+Then we could obtain the Vega of the option using the following formula:
+\begin{equation*}
+\forall \epsilon > 0, 
+\forall i \in \{1,...,N-1\},      
+\vartheta^{0}_{i} = \frac{f^{0}_{i+1}(\sigma + \epsilon) - f^{0}_{i}(\sigma)}{\epsilon} 
+\end{equation*} 
 \end{document}
-
 
