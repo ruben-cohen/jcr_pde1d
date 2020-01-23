@@ -115,23 +115,33 @@ int main(int argc, char* argv[])
 	}
 	
 	std::cout << "size_vector test " << cond_test.size() <<std::endl;
-	 
-	//B = sol.BX_vector(up_B,mid_B,low_B,cond_test,init_f);
 	
-	std::cout << "B" << std::endl;
-	print(B);
+	//print(init_f);
+	
+	init_f.erase(init_f.begin());
+	init_f.pop_back();
+	 
+	B = sol.BX_vector(up_B,mid_B,low_B,cond_test,init_f);
+	
+	//print(B);
+	
+	//std::cout << B.size() << std::endl;
+	
+/* 	std::cout << "B" << std::endl;
+	
+
 	//print(mid_B);
-	//std::cout << mid_B.size() << std::endl;
+	std::cout << mid_B.size() << std::endl;
 	//print(up_B);
 	
-	//std::cout << up_B.size() << std::endl;
+	std::cout << up_B.size() << std::endl;
 	//print(low_B);
+
+	std::cout << low_B.size() << std::endl; */
 	
-	//std::cout << low_B.size() << std::endl;
 	
 	
-	//std::vector<std::vector<double>>  price = res.get_price();
-	
+    sol.solve_X(grille, theta_,c2.get_cond(), vol_mat, rate_mat);
 	
 	
 	//print(K_v);
@@ -159,7 +169,7 @@ int main(int argc, char* argv[])
 	//std::cout<< "solver" << std::endl;
 	//std::cout << price << std::endl;
 	
-	std::cout<< "fonction calcul cond init:" << std::endl;
+/* 	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << grille.init_cond(S) << std::endl;
 
 	std::cout<< "Vecteur de prix (log):" << std::endl;
@@ -190,7 +200,7 @@ int main(int argc, char* argv[])
 	
 	
 	std::cout<< "vecteur Neumann:" << std::endl;
-	print(c2.get_cond());
+	print(c2.get_cond()); */
 
 	delete option;
 
