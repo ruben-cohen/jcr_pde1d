@@ -199,7 +199,9 @@ std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_ini
 	{
 		public:
 		
-		solver(mesh grid, double theta,const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat, std::vector<std::vector<double>> rate_mat); //constructor of the solver object
+		solver(mesh grid, std::vector<std::vector<double>> res);
+		
+		void solve_X(mesh grid, double theta,const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat, std::vector<std::vector<double>> rate_mat); //constructor of the solver object
 		
 		~solver(); //destructor of the solver object 
 		
@@ -219,7 +221,7 @@ std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_ini
 		private:
 		
 		mesh m_mesh;
-		std::vector<std::vector<double>> results;
+		std::vector<std::vector<double>> m_results;
 		
 		//set of function to define the A matrix (3 better than just one huge matrix ?) 
 		//in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 

@@ -50,15 +50,49 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<double>> vol_mat;
 	std::vector<std::vector<double>> rate_mat;
 	
-	for(long i=0; i<_t_;i++){
+	for(long i=0; i<_t_-1;i++){
 		
 		vol_mat.push_back(sigma);
 		rate_mat.push_back(rate);
 	};
 	
-	solver res(grille, theta_, c2.get_cond(), vol_mat,rate_mat);
+/* 	for(long i=0; i<vol_mat.size()-1;i++){
+		
+			for(long j=0; j<vol_mat[j].size()-1;j++){
+		
+					std::cout << vol_mat.back()[i] << std::endl;
+					std::cout << rate_mat.back()[i] << std::endl;
+		
+				};
+		
+	}; */
+	std::vector<double> up_B;
+	std::vector<double> mid_B;
+	std::vector<double> low_B;
+	std::vector<double> B;
 	
-	std::vector<std::vector<double>>  price = res.get_price();
+	std::vector<double> init_f = grille.get_init_vector();
+	
+	std::vector<std::vector<double>> res;
+	
+	solver sol(grille, res);
+	
+	up_B = sol.Upper_diag_coeff(grille,false,theta_,sigma, rate);
+    low_B = sol.Lower_diag_coeff(grille,false,theta_,sigma, rate);
+	mid_B = sol.Mid_diag_coeff(grille,false,theta_,sigma, rate);
+
+	 
+	 
+	B = sol.BX_vector(up_B,mid_B,low_B,sigma,init_f);
+	
+	//print(B);
+	//print(mid_B);
+	//print(up_B);
+	//print(low_B);
+	
+	
+	
+	//std::vector<std::vector<double>>  price = res.get_price();
 	
 	
 	
@@ -87,7 +121,7 @@ int main(int argc, char* argv[])
 	//std::cout<< "solver" << std::endl;
 	//std::cout << price << std::endl;
 	
-	std::cout<< "fonction calcul cond init:" << std::endl;
+/* 	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << grille.init_cond(S) << std::endl;
 
 	std::cout<< "Vecteur de prix (log):" << std::endl;
@@ -112,10 +146,10 @@ int main(int argc, char* argv[])
 	std::cout << grille.getdt() << std::endl;
 	
 	std::cout<< "vecteur dirichlet:" << std::endl;
-	print(c.get_cond());
+	print(c2.get_cond());
 	std::cout<< "Size vecteur dirichlet:" << std::endl;
-	std::cout<< c.get_cond().size() <<std::endl;
-	
+	std::cout<< c2.get_cond().size() <<std::endl;
+	 */
 	
 	// std::cout<< "vecteur Neumann:" << std::endl;
 	// print(c2.get_cond());
