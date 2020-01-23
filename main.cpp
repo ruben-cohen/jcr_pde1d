@@ -39,10 +39,29 @@ int main(int argc, char* argv[])
 	
 	//test of the boundaries : 
 	//Parameters par(v, r, theta_);
-	//std::vector<double> K_v{0.1,0.1,0.1,0.1};
-	//std::vector<double> K_v2{0.1,0.1,0.1,0.1};
-	//Derichtlet c(grille,par);
-	//Neumann c2(grille,par,K_v);
+	long s = grille.Getvector_stock().size();
+	long _t_ = grille.Getvector_time().size();
+	std::vector<double> sigma(s,v);
+	std::vector<double> rate(s,r);
+	std::vector<double> K_v{0.1,0.1,0.1,0.1};
+	Derichtlet c(grille, rate);
+	Neumann c2(grille, theta_, sigma, rate,K_v);
+	
+	std::vector<std::vector<double>> vol_mat;
+	std::vector<std::vector<double>> rate_mat;
+	
+	for(long i=0; i<_t_;i++){
+		
+		vol_mat.push_back(sigma);
+		rate_mat.push_back(rate);
+	};
+	
+	solver res(grille, theta_, c2.get_cond(), vol_mat,rate_mat);
+	
+	std::vector<std::vector<double>>  price = res.get_price();
+	
+	
+	
 	//print(K_v);
 	
 	//std::vector<double> m_data(2 * 3);
@@ -55,7 +74,7 @@ int main(int argc, char* argv[])
 	// xt::xtensor<double, 1> K_v = {0.1, 0.1, 0.1, 0.1 };
 	// xt::xtensor<double, 1> K_v2 = {0.1, 0.1, 0.1, 0.1 };
 	// xt::xarray<double> res = xt::linalg::dot(K_v, K_v2);
-	std::vector<double> der = c.get_cond();
+	//std::vector<double> der = c.get_cond();
 	// std::cout<< res()<< std::endl;
 	//xt::xarray<double> res = xt::linalg::dot(K_v, K_v2);
 	
