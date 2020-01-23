@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 	
 	// mesh discretisation parameters
 	long nb_step_spot =20;    // Spot goes from [0.0, 1.0]
-	long nb_step_time = 20; 
+	long nb_step_time = 15; 
 	
 	
 	// Create the PayOff object (strike as parameter)
@@ -47,10 +47,33 @@ int main(int argc, char* argv[])
 	Derichtlet c(grille, rate);
 	Neumann c2(grille, theta_, sigma, rate,K_v);
 	
+	//std::cout<< "size is" << c2.get_cond().size() << std::endl;
+	//print(c2.get_cond());
+	
+	
+	std::vector<std::vector<double>> test = transform_matrix(c2.get_cond(),s);
+	
+	
+	
+/* 		for(long i=0; i<test.size()-1;i++){
+		
+			for(long j=0; j<test[j].size()-1;j++){
+		
+					std::cout << test[j][i]  << std::endl;
+					//std::cout << rate_mat.back()[i] << std::endl;
+		
+				};
+				
+		
+		
+	}; */
+	
+	
+	
 	std::vector<std::vector<double>> vol_mat;
 	std::vector<std::vector<double>> rate_mat;
 	
-	for(long i=0; i<_t_-1;i++){
+	for(long i=0; i<_t_;i++){
 		
 		vol_mat.push_back(sigma);
 		rate_mat.push_back(rate);
@@ -71,25 +94,40 @@ int main(int argc, char* argv[])
 	std::vector<double> low_B;
 	std::vector<double> B;
 	
-	std::vector<double> init_f = grille.get_init_vector();
+	std::vector<double> init_f(grille.get_init_vector());
 	
 	std::vector<std::vector<double>> res;
 	
 	solver sol(grille, res);
 	
+
 	up_B = sol.Upper_diag_coeff(grille,false,theta_,sigma, rate);
     low_B = sol.Lower_diag_coeff(grille,false,theta_,sigma, rate);
 	mid_B = sol.Mid_diag_coeff(grille,false,theta_,sigma, rate);
 
 	 
-	 
-	B = sol.BX_vector(up_B,mid_B,low_B,sigma,init_f);
+	std::vector<double> cond_test;
 	
-	//print(B);
+	for(int i =0; i <test.size();i++){
+		
+		
+		cond_test.push_back(test[i].back());
+	}
+	
+	std::cout << "size_vector test " << cond_test.size() <<std::endl;
+	 
+	//B = sol.BX_vector(up_B,mid_B,low_B,cond_test,init_f);
+	
+	std::cout << "B" << std::endl;
+	print(B);
 	//print(mid_B);
+	//std::cout << mid_B.size() << std::endl;
 	//print(up_B);
+	
+	//std::cout << up_B.size() << std::endl;
 	//print(low_B);
 	
+	//std::cout << low_B.size() << std::endl;
 	
 	
 	//std::vector<std::vector<double>>  price = res.get_price();
@@ -121,7 +159,7 @@ int main(int argc, char* argv[])
 	//std::cout<< "solver" << std::endl;
 	//std::cout << price << std::endl;
 	
-/* 	std::cout<< "fonction calcul cond init:" << std::endl;
+	std::cout<< "fonction calcul cond init:" << std::endl;
 	std::cout << grille.init_cond(S) << std::endl;
 
 	std::cout<< "Vecteur de prix (log):" << std::endl;
@@ -149,10 +187,10 @@ int main(int argc, char* argv[])
 	print(c2.get_cond());
 	std::cout<< "Size vecteur dirichlet:" << std::endl;
 	std::cout<< c2.get_cond().size() <<std::endl;
-	 */
 	
-	// std::cout<< "vecteur Neumann:" << std::endl;
-	// print(c2.get_cond());
+	
+	std::cout<< "vecteur Neumann:" << std::endl;
+	print(c2.get_cond());
 
 	delete option;
 

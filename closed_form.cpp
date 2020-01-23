@@ -118,30 +118,39 @@
 	std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_init, double nb_rows){
 	
 	double endv; 
-	std::vector<double> upper_bound(vector_init);
-	std::vector<double> lower_bound(vector_init);
+	//std::vector<double> upper_bound(vector_init);
+	//std::vector<double> lower_bound(vector_init);
 	
 	
 	 
-	 if (vector_init.size()%2==0){endv=vector_init.size()%2;}
-	 else {endv=std::floor(vector_init.size()/2) -1;};
+	 if (vector_init.size()%2==0){endv=vector_init.size()/2;}
+	 else {endv=std::floor(vector_init.size()/2) -1;}; //case useless !
 	 
-	 upper_bound.resize(endv);
-	 lower_bound.resize(-endv -1);
+	 std::vector<double> upper_bound(endv);
+	 std::vector<double> lower_bound(endv);
 	 
-	 std::vector<double> row_0(upper_bound.size(), 0.0);
+	 std::copy(vector_init.begin(), vector_init.begin() + endv , upper_bound.begin());
+	 
+	 std::copy(vector_init.begin() + endv, vector_init.end(), lower_bound.begin());
+	 
+	 
+	std::vector<double> row_0(upper_bound.size(), 0.0);
 	 
 	std::vector<std::vector<double>> matrix;
 	
-	matrix.push_back(upper_bound);
+	matrix.resize(nb_rows, std::vector<double>(upper_bound.size()));
+	
+	matrix.front() = upper_bound;
+	
+	//std::cout << "row 0 size " << row_0.size() <<  "up size " << upper_bound.size() <<  "low size " << lower_bound.size() << std::endl;
 	
 	for(int i=1; i<nb_rows-1; i++){
 		
 		
-		matrix.push_back(row_0);
+		matrix[i] = row_0;
 	};
 	
-	matrix.push_back(lower_bound);
+	matrix.back() = lower_bound;
 	 
 	return matrix;		
 	}
@@ -193,6 +202,12 @@
 		double S0 = m_grid.get_Spot();
 		size_t size_spot = m_grid.Getvector_stock().size();
 		
+/* 		if(size_spot != rate.size()){
+			
+			std::cout<< "size of sigma is" << rate.size() << "size of spot is" << size_spot << std::endl;
+		}
+		else{ std::cout<< "okay for Derichtlet" << std::endl;}; */
+		
 		//From parametre object
 		//double sigma = m_param.Get_Vol(); //to get the volatility 
 		//double rate = m_param.Get_Rate(); //the get the rate 
@@ -236,6 +251,18 @@
 		//double theta = m_param.Get_Theta(); //to get the theta 
 		//double r = m_param.Get_Rate();
 		
+/* 		if(size_spot != sigma.size()){
+			
+			std::cout<< "size of sigma is" << sigma.size() << "size of spot is" << size_spot << std::endl;
+		}
+		else{ std::cout<< "okay for neumann" << std::endl;};
+		
+		if(size_spot != rate.size()){
+			
+			std::cout<< "size of rate is" << rate.size() << "size of spot is" << size_spot << std::endl;
+		}
+		else{ std::cout<< "okay for neumann" << std::endl;}; */
+		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
 		double f_0_T = _init_cond[0];
@@ -251,14 +278,19 @@
 		double coef_K3_K4; 
 		
 		matrix_neumann.resize(size_vec);
-		matrix_neumann.push_back(f_0_T*exp(-maturity*rate[0]));
+		matrix_neumann.back() =  f_0_T*exp(-maturity*rate[0]);
 		matrix_neumann.resize(size_vec*2);
-		matrix_neumann.push_back(f_N_T*exp(-maturity*rate.back()));
+		matrix_neumann.back() = f_N_T*exp(-maturity*rate.back());
 		
-		for (size_t it = size_vec-1; it != 0; it--)
+		for (size_t it = size_vec-1; it > 0; it--)
 		{
 		      //reverse iterator to fill the vector from the end to the beginning
-			  size_t tt = size_vec + it;
+			  
+			  //std::cout << it << std::endl;
+			  
+			  size_t tt = size_vec + it -1;
+			  
+			  //std::cout << tt << std::endl;
 			  
 			  		coef_ =(1 - dt*(1-theta)*rate[it])/(1+ dt*theta*rate[it]);
 					coef_K1_K2 = -dt*((-std::pow(sigma[it],2)*K1)/2 + (std::pow(sigma[it],2)/2 - rate[it])*K2)/(1+ dt*theta*rate[it]);
@@ -269,6 +301,7 @@
 			
 			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-rate[it]*dt*it);
 		 }
+		 
 	};
 	
     std::vector<double> Neumann::get_cond() const
