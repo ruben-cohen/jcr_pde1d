@@ -115,11 +115,13 @@
         std::cout << std::endl;
     };
 
-	std::vector<double> transform_matrix(std::vector<double> vector_init, double nb_rows){
+	std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_init, double nb_rows){
 	
 	double endv; 
 	std::vector<double> upper_bound(vector_init);
 	std::vector<double> lower_bound(vector_init);
+	
+	
 	 
 	 if (vector_init.size()%2==0){endv=vector_init.size()%2;}
 	 else {endv=std::floor(vector_init.size()/2) -1;};
@@ -127,17 +129,19 @@
 	 upper_bound.resize(endv);
 	 lower_bound.resize(-endv -1);
 	 
-	std::vector<double> matrix(upper_bound);
+	 std::vector<double> row_0(upper_bound.size(), 0.0);
+	 
+	std::vector<std::vector<double>> matrix;
 	
-	for(int i=0; i<endv*nb_rows; i++){
+	matrix.push_back(upper_bound);
+	
+	for(int i=1; i<nb_rows-1; i++){
 		
-		matrix.push_back(0.0);
+		
+		matrix.push_back(row_0);
 	};
 	
-	for(size_t t=0; t<lower_bound.size(); t++)
-	{
-		matrix.push_back(lower_bound[t]);
-	};
+	matrix.push_back(lower_bound);
 	 
 	return matrix;		
 	}
@@ -343,7 +347,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  solver::solver(mesh grid, double theta, const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat,std::vector<std::vector<double>> rate_mat)
 	:
-	 m_mesh(grid)
+	 m_mesh(grid),results(results)
  {
 	 std::vector<std::vector<double>> results;
 	 std::vector<std::vector<double>> vol(vol_mat);
@@ -351,7 +355,7 @@
 	 long T = grid.Getvector_time().size(); 
 	 std::size_t m = grid.Getvector_stock().size();
 	 std::vector<double> init_f = grid.get_init_vector(); // get the initial X_T
-	 std::vector<std::vector<double>> matrix_boundaries = transform_matrix(boundaries); //get the boundaries matrix 
+	 std::vector<std::vector<double>> matrix_boundaries = transform_matrix(boundaries,T); //get the boundaries matrix 
 	 std::vector<double> cond_diff(m);
 	 std::vector<double> solution_vector(m-2, 0.0); //init of the solution vector 
 	 std::vector<double> up_A;
@@ -369,12 +373,12 @@
 	 }; //initialisation du vecteur de C(n+1) - C(n) 
 	 
 	 //initialisation de la matrice B à maturité 
-	 up_B = Upper_diag_coeff(grid,false,theta,1,1)//vol.back(), rate.back());
-	 low_B = Lower_diag_coeff(grid,false,theta,1,1)//,vol.back(), rate.back());
-	 mid_B = Mid_diag_coeff(grid,false,theta,1,1)//,vol.back(), rate.back());
+	 up_B = Upper_diag_coeff(grid,theta,false,vol.back(), rate.back());
+	 low_B = Lower_diag_coeff(grid,theta,false,vol.back(), rate.back());
+	 mid_B = Mid_diag_coeff(grid,theta,false,vol.back(), rate.back());
 	 
 	 
-	std::vector<double> B = BX(up,mid,low,cond_diff,init_f);
+	std::vector<double> B = BX_vector(up_B,mid_B,low_B,cond_diff,init_f);
 
 	rate.pop_back();
 	vol.pop_back();
@@ -384,9 +388,9 @@
 	 {
 		 
 		
-		up_A = Upper_diag_coeff(grid,true,theta,1,1)//vol.back(), rate.back());
-		low_A = Lower_diag_coeff(grid,true,theta,1,1)//vol.back(), rate.back());
-		mid_A = Mid_diag_coeff(grid,true,theta,1,1)//vol.back(), rate.back());
+		up_A = Upper_diag_coeff(grid,theta,true,vol.back(), rate.back());
+		low_A = Lower_diag_coeff(grid,theta,true,vol.back(), rate.back());
+		mid_A = Mid_diag_coeff(grid,theta,true,vol.back(), rate.back());
 			
 		thomas_algorithm(up_A, mid_A, low_A, B, solution_vector);
 		results.push_back(solution_vector); //create a matrix containing all the prices computed by the solver in order to be displayed afterwards
@@ -398,12 +402,12 @@
 			 
 		init_f = solution_vector;
 		
-		up_B = Upper_diag_coeff(grid, param,false,theta,1,1)//vol.back(), rate.back());
-	    low_B = Lower_diag_coeff(grid, param,false,theta,1,1)//vol.back(), rate.back());
-		mid_B = Mid_diag_coeff(grid, param,false,theta,1,1)//vol.back(), rate.back());
+		up_B = Upper_diag_coeff(grid, theta,false,vol.back(), rate.back());
+	    low_B = Lower_diag_coeff(grid, theta,false,vol.back(), rate.back());
+		mid_B = Mid_diag_coeff(grid, theta,false,vol.back(), rate.back());
 	 
 	 
-	    B = BX(up,mid,low,cond_diff,init_f);
+	    B = BX_vector(up_B,mid_B,low_B,cond_diff,init_f);
 		
 		rate.pop_back();
 		vol.pop_back();
@@ -416,12 +420,12 @@
 	 
  }; 
  
-const std::vector<std::vector<double>> get_price(){
+std::vector<std::vector<double>> solver::get_price(){
 	
 	return results;
 };
  
- std::vector<double> BX_vector(std::vector<double> upper, std::vector<double> mid, std::vector<double> low, std::vector<double> bound_diff, std::vector<double> Fn1){
+ std::vector<double> solver::BX_vector(std::vector<double> upper, std::vector<double> mid, std::vector<double> low, std::vector<double> bound_diff, std::vector<double> Fn1){
 //this procedure creates the right_hand vector of the AX = D equation based on BX(n+1) + C(n+1) - C(n)
 	std::size_t N = mid.size(); // as the resolution si between f1 and fN-1
 	
@@ -430,26 +434,29 @@ const std::vector<std::vector<double>> get_price(){
 	for(size_t i = 0; i < N; i++){
 		
 		
-		switch (i) {
-        case 0: BX[i] = mid[0]*Fn1[0] + upper[0]*Fn1[0] +bound_diff[0];
-		case N: BX[i] =  mid.back()*Fn1.back() + lower.back()*Fn1[N-1] + bound_diff.back();
-        default: BX[i] = mid[i]*Fn1[i] + upper[i]*Fn1[i+1] +lower[i-1]*Fn1[i-1] + bound_diff(i);
-    };
+		if(i==0){BX[0] = mid[0]*Fn1[0] + upper[0]*Fn1[0] +bound_diff[0];}
+			
+			
+		else if(i==N) {BX[N] =  mid.back()*Fn1.back() + low.back()*Fn1[N-1] + bound_diff.back();}
+        
+    
+	
+		else{BX[i] = mid[i]*Fn1[i] + upper[i]*Fn1[i+1] +low[i-1]*Fn1[i-1] + bound_diff[i];}
+	
+	};
 	
 	return BX;
-		
-	};
 };
 	
 //set of function to define the A matrix (3 better than just one huge matrix ?) 
-std::vector<double> solver::Mid_diag_coeff(mesh grid, double theta,bool A,double theta, std::vector<double> sigma, std::vector<double> rate){
+std::vector<double> solver::Mid_diag_coeff(mesh grid, bool A,double theta, std::vector<double> sigma, std::vector<double> rate){
 	
 	double dt = grid.getdt(); //need the time step 
 	double dx = grid.getdx(); //need the stock step 
 	//std::vector<double> sigma_init = param.get_Vol(); //to get the volatility 
 	//std::vector<double> rate_init = param.get_Rate(); //the get the rate 
 	//double theta = param.get_Theta(); //to get the theta 
-	double size_gamma = Getvector_stock().size(); //no minus-1 as we are on diagonal 
+	double size_gamma = grid.Getvector_stock().size(); //no minus-1 as we are on diagonal 
 	
 	
 	
@@ -464,11 +471,11 @@ std::vector<double> solver::Mid_diag_coeff(mesh grid, double theta,bool A,double
 			
 			gamma_coefficient[i] = -dt*(1-theta)*gamma_coefficient[i] + 1;
 			//this condition checks if we are computing the A matrix or the B matrix as B is only the opposite of A 
-		};
+		}
 		
 		else{
 			
-			gamma_coefficient[i] = dt*theta*alpha_coefficient[i] + 1;
+			gamma_coefficient[i] = dt*theta*gamma_coefficient[i] + 1;
 		};
 	};
 	
@@ -477,14 +484,14 @@ std::vector<double> solver::Mid_diag_coeff(mesh grid, double theta,bool A,double
 }; 
 
 
-std::vector<double> solver::Upper_diag_coeff(mesh grid, double theta,bool A,double theta,std::vector<double> sigma, std::vector<double> rate){
+std::vector<double> solver::Upper_diag_coeff(mesh grid, bool A,double theta,std::vector<double> sigma, std::vector<double> rate){
 	
 	double dt = grid.getdt(); //need the time step 
 	double dx = grid.getdx(); //need the stock step 
 	//std::vector<double> sigma_init = param.get_Vol(); //to get the volatility 
 	//std::vector<double> rate_init = param.get_Rate(); //the get the rate 
 	//double theta = param.get_Theta(); //to get the theta 
-	double size_alpha = Getvector_stock().size()-1; //minus 1 because we are on the uppdiag 
+	double size_alpha = grid.Getvector_stock().size()-1; //minus 1 because we are on the uppdiag 
 	
 	//create the vector that holds the diagonal 
 	std::vector<double> alpha_coefficient(size_alpha);
@@ -498,7 +505,7 @@ std::vector<double> solver::Upper_diag_coeff(mesh grid, double theta,bool A,doub
 			
 			alpha_coefficient[i] = -dt*(1-theta)*alpha_coefficient[i];
 			//this condition checks if we are computing the A matrix or the B matrix as B is only the opposite of A 
-		};
+		}
 		
 		else{
 			
@@ -511,7 +518,7 @@ std::vector<double> solver::Upper_diag_coeff(mesh grid, double theta,bool A,doub
 };
 
 
-std::vector<double> solver::Lower_diag_coeff(mesh grid, double theta,bool A,double theta,std::vector<double> sigma, std::vector<double> rate){
+std::vector<double> solver::Lower_diag_coeff(mesh grid, bool A,double theta,std::vector<double> sigma, std::vector<double> rate){
 	
 	
 	double dt = grid.getdt(); //need the time step 
@@ -519,7 +526,7 @@ std::vector<double> solver::Lower_diag_coeff(mesh grid, double theta,bool A,doub
 	//std::vector<double> sigma_init = param.get_Vol(); //to get the volatility 
 	//std::vector<double> rate_init = param.get_Rate(); //the get the rate 
 	//double theta = param.get_Theta(); //to get the theta 
-	double size_beta = Getvector_stock().size()-1; //minus 1 because we are on the uppdiag 
+	double size_beta = grid.Getvector_stock().size()-1; //minus 1 because we are on the uppdiag 
 	
 	//create the vector that holds the diagonal 
 	std::vector<double> beta_coefficient(size_beta);
@@ -533,7 +540,7 @@ std::vector<double> solver::Lower_diag_coeff(mesh grid, double theta,bool A,doub
 			
 			beta_coefficient[i] = -dt*(1-theta)*beta_coefficient[i];
 			//this condition checks if we are computing the A matrix or the B matrix as B is only the opposite of A 
-		};
+		}
 		
 		else{
 			
@@ -571,9 +578,12 @@ void solver::thomas_algorithm(const std::vector<double>& upper_diag,
   for (int i=nb_spot-1; i-- > 0; ) {
     f_sol[i] = d_star[i] - c_star[i] * f_n1[i+1];
   }
-}; //this is a void function because it modifies the price 
+}; 
 
-std::vector<double> resolution(){};
+
+solver::~solver(){};
+
+//this is a void function because it modifies the price 
 	
 /*  Solve::Solve(mesh _grid, Parameters _param, std::vector<double>& conditions)
  :
