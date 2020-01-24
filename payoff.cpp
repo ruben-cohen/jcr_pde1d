@@ -6,30 +6,17 @@
 namespace projet
 {
 	
-	PayOff::PayOff() 
-	{	
-	}
+	//Constructor 
+	PayOffCall::PayOffCall(const double& K)
+	:
+	 m_K(K)
+	{
+	};
 	
-//We start with the classic call and putpayoff
-	//Regarding parameters, we only need a strike price to define de payoff of both options
-	PayOffCall::PayOffCall(const double& _K) 
+	//Method to compute the initial condition of the Call option
+	double PayOffCall::operator() (const double& S,const double& df) const 
 	{
-		K = _K; 
-	}
-	double PayOffCall::operator() (const double& S) const 
-	{
-		return std::max(S-K, 0.0); // Call payoff
-	}
-	PayOffPut::PayOffPut(const double& _K)
-	{
-		K = _K;
-	}
-
-	// Over-ridden operator() method, which turns PayOffPut into a function object
-	double PayOffPut::operator() (const double& S) const
-	{
-	  return std::max(K-S, 0.0); // Put pay-off
-	}
-
+		return std::max(S-m_K*df, 0.0); // Call payoff
+	};
 }
 #endif

@@ -11,6 +11,7 @@
 	//Regarding parameters, we only need a strike price to define the payoff
 	
 	//Constructor 
+	//Constructor 
 	PayOffCall::PayOffCall(const double& K)
 	:
 	 m_K(K)
@@ -18,9 +19,9 @@
 	};
 	
 	//Method to compute the initial condition of the Call option
-	double PayOffCall::operator() (const double& S) const 
+	double PayOffCall::operator() (const double& S,const double& df) const 
 	{
-		return std::max(S-m_K, 0.0); // Call payoff
+		return std::max(S-m_K*df, 0.0); // Call payoff
 	};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +78,9 @@
 	{
 		return m_vector_stock;
 	}; 
-	double mesh::init_cond(const double& x) const 
+	double mesh::init_cond(const double& x,const double& df) const 
 	{
-	  return option->operator()(x);
+	  return option->operator()(x,df);
 	};
 	
 	//we will need to get the dx for CN algo	
@@ -105,7 +106,6 @@
 	
 	//Destructor
 	mesh::~mesh() {};
-	
     void print(const std::vector<double>& v)
     {
         for(size_t i = 0; i < v.size(); ++i)
@@ -198,6 +198,7 @@
 		double dt = m_grid.getdt();
 		double dx = m_grid.getdx(); //need the stock step 
 		size_t size_vec = m_grid.Getvector_time().size();
+		double T = m_grid.Getvector_time().back();
 		double maturity = m_grid.Getvector_time().back();
 		double S0 = m_grid.get_Spot();
 		size_t size_spot = m_grid.Getvector_stock().size();
@@ -215,17 +216,21 @@
 		//double r = m_param.Get_Rate();
 		
 		//From PDE object
-		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
-		double f_0_T = _init_cond[0];
-		double f_N_T = _init_cond.back();
+		double spot_max = m_grid.Getvector_stock().back();
+		double spot_min = m_grid.Getvector_stock()[0];
+		//double f_0_T = _init_cond[0];
+		//double f_N_T = _init_cond.back();
 		
 		matrix_derichtlet.resize(size_vec*2); 
-		//std::vector<double> lower_conditions(size_vec); 
+		//std::vector<double> lower_conditions(size_vec);
+
+		double df = 0.;
 		
 		for(size_t i = 0; i < size_vec; ++i)
         {
-            matrix_derichtlet[i] = f_0_T*exp(-rate[i]*dt*i); // for here
-			matrix_derichtlet[size_vec+i] = f_N_T*exp(-rate[i]*dt*i);
+			df = exp(-rate[i]*(T-dt*i));
+			matrix_derichtlet[i] = m_grid.init_cond(exp(spot_min),df); // for here
+			matrix_derichtlet[size_vec+i] = m_grid.init_cond(exp(spot_max),df);;
         }
 	};
 	

@@ -17,6 +17,7 @@
 
 
 //Payoff Class
+//Payoff Class
 	class PayOff 
 	{
 		 public:
@@ -25,7 +26,7 @@
 			// Virtual destructor to avoid memory leaks when destroying the base and inherited classes
 			virtual ~PayOff() {}; 
 			// We turn the payoff into a functor, goal is to compute initial condition
-			virtual double operator() (const double& S) const = 0;
+			virtual double operator() (const double& S,const double& df = 0) const = 0;
 			//virtual double init_cond(const double& S)) const;
 	};
 	
@@ -41,7 +42,7 @@
 			virtual ~PayOffCall() {};
 
 			// Virtual function is now over-ridden (not pure-virtual anymore)
-			virtual double operator() (const double& S) const;
+			virtual double operator() (const double& S,const double& df = 0) const;
 			//virtual double init_cond(const double& S)) const;
 		  
 		 private:
@@ -66,7 +67,7 @@
 		double getdx() const;
 		double getdt() const;
 		double get_Spot() const;
-		double init_cond(const double& x) const;
+		double init_cond(const double& x,const double& df = 0) const;
 		std::vector<double> get_init_vector() const;
 	
 	
@@ -91,6 +92,7 @@ std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_ini
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // boundaries class
+	
 	
 	class bound_conditions 
 	{
@@ -144,6 +146,7 @@ std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_ini
 		//std::vector<double> K_neuman; 
 		
 	};
+		
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	class volatility 
 	{
