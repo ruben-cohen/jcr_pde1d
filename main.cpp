@@ -19,14 +19,14 @@ int main(int argc, char* argv[])
 	// Create the option parameters
 	double S = 100;
 	double K = 100;  // Strike price
-	double r = 0.05;   // Risk-free rate (5%)
+	double r = 0.0;   // Risk-free rate (5%)
 	double v = 0.2;    // Volatility of the underlying (20%)
 	double T = 1.00;    // One year until expiry
 	double theta_ = 0.5;
 	
 	// mesh discretisation parameters
-	long nb_step_spot =20;    // Spot goes from [0.0, 1.0]
-	long nb_step_time = 15; 
+	long nb_step_spot =50;    // Spot goes from [0.0, 1.0]
+	long nb_step_time = 10; 
 	
 	
 	// Create the PayOff object (strike as parameter)
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 	//print(c2.get_cond());
 	
 	
-	std::vector<std::vector<double>> test = transform_matrix(c2.get_cond(),s);
+	std::vector<std::vector<double>> test = transform_matrix(c.get_cond(),s);
 	
 	
 	
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 		cond_test.push_back(test[i].back());
 	}
 	
-	std::cout << "size_vector test " << cond_test.size() <<std::endl;
+	//std::cout << "size_vector test " << cond_test.size() <<std::endl;
 	
 	//print(init_f);
 	
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 	
 	
 	
-    sol.solve_X(grille, theta_,c2.get_cond(), vol_mat, rate_mat);
+    sol.solve_X(grille, theta_,c.get_cond(), vol_mat, rate_mat);
 	
 	
 	//print(K_v);

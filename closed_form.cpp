@@ -270,8 +270,11 @@
 		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
-		double f_0_T = _init_cond[0];
-		double f_N_T = _init_cond.back();
+		double spot_min = m_grid.Getvector_stock()[0];
+		double df = exp(-rate.back()*maturity);
+		double spot_max = m_grid.Getvector_stock().back();
+		double f_0_T = m_grid.init_cond(exp(spot_min),df);
+		double f_N_T = m_grid.init_cond(exp(spot_max),df);
 		
 	    double K1 = const_vector[0];
 	    double K2 = const_vector[1];
@@ -302,9 +305,9 @@
 					coef_K3_K4 = -dt*((-std::pow(sigma[it],2)*K3)/2 + (std::pow(sigma[it],2)/2 - rate[it])*K4)/(1+ dt*theta*rate[it]);
 					
 					
-			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2)*exp(-rate[it]*dt*it);
+			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2);
 			
-			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-rate[it]*dt*it);
+			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4);
 		 }
 		 
 	};
@@ -411,18 +414,47 @@
 	 
 	 solver solver(grid, results);
 	 
+	 double BetaN = 1;
+	 double BetaN1 = 1;
+	 double AlphaN = 1;
+	 double AlphaN1 = 1;
+	 
+	 	 //initialisation de la matrice B à maturité 
+	 up_B = solver.Upper_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 low_B = solver.Lower_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 mid_B = solver.Mid_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 
+	up_A = solver.Upper_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	low_A = solver.Lower_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	mid_A = solver.Mid_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	
+	
 	 
 	 for(size_t s = 0; s<m; ++s)
 	 {
 		 
-		 cond_diff[s] = matrix_boundaries[s].back()-matrix_boundaries[s][T-1];
+		 if(s==0){
+			 
+			 BetaN = low_A[0];
+
+			 BetaN1 = low_B[0];
+			 
+			 cond_diff[s] = BetaN1*matrix_boundaries[s].back()-BetaN*matrix_boundaries[s][T-1];
+		 }
+		 else if( s ==m-1){
+			 
+			 AlphaN = up_A.back();
+			 AlphaN1 = up_B.back();
+			 
+			 cond_diff[s] = AlphaN1*matrix_boundaries[s].back()-AlphaN*matrix_boundaries[s][T-1];
+			 
+		 }
+		 
+		 else{cond_diff[s] = matrix_boundaries[s].back()-matrix_boundaries[s][T-1];};
 	 }; //initialisation du vecteur de C(n+1) - C(n) 
 	 
 	 
-	 //initialisation de la matrice B à maturité 
-	 up_B = solver.Upper_diag_coeff(grid,false,theta,vol.back(), rate.back());
-	 low_B = solver.Lower_diag_coeff(grid,false,theta,vol.back(), rate.back());
-	 mid_B = solver.Mid_diag_coeff(grid,false,theta,vol.back(), rate.back());
+
 	 
 
 	std::vector<double> B = solver.BX_vector(up_B,mid_B,low_B,cond_diff,init_f);
@@ -431,7 +463,7 @@
 	vol.pop_back();
 	 
 	 
-	 for(int i = grid.Getvector_time().size() - 1; i > 0; --i)
+	 for(int i = grid.Getvector_time().size() - 1; i != 0; --i)
 	 {
 		 
 		
@@ -443,14 +475,33 @@
 		
 		results.push_back(solution_vector); //create a matrix containing all the prices computed by the solver in order to be displayed afterwards
 		
+		
 		for(size_t s = 0; s<m; ++s){
+		 	
+		if(s==0){
+			 
+			 BetaN = low_A[0];
+
+			 BetaN1 = low_B[0];
+			 
+			 cond_diff[s] = BetaN1*matrix_boundaries[s][i]-BetaN*matrix_boundaries[s][i-1];
+		 }
+		 else if( s==m-1){
+			 
+			 AlphaN = up_A.back();
+			 AlphaN1 = up_B.back();
+			 
+			 cond_diff[s] = AlphaN1*matrix_boundaries[s][i]-AlphaN*matrix_boundaries[s][i-1];
+			 
+		 }
 		 
-				cond_diff[s] = matrix_boundaries[s][i]-matrix_boundaries[s][i-1];
+		 else{cond_diff[s] = matrix_boundaries[s][i]-matrix_boundaries[s][i-1];;};
 			 }; 
+			 
 			 
 		//init_f = solution_vector;
 		
-		std::cout << "price at time " << i << " is " << std::endl;
+		std::cout << "price at time " << i-1 << " is " << std::endl;
 		
 		print(solution_vector);
 		
@@ -623,19 +674,26 @@ std::vector<double> solver::Lower_diag_coeff(mesh grid, bool A,double theta,std:
 
 void solver::thomas_algorithm(const std::vector<double>& upper_diag, const std::vector<double>& mid_diag, const std::vector<double>& lower_diag, const std::vector<double>& f_n1, std::vector<double>& f_sol) {
   size_t nb_spot = f_n1.size();
-
+  
+  std::vector<double>  lower_diag2(lower_diag);
+  std::vector<double>  upper_diag2(upper_diag);
+  
+  upper_diag2.push_back(0.0);
+  lower_diag2.insert(lower_diag2.begin(),0.0);
   // Create the temprary vectors to store new coef                                                                                                                                                                                                                                                                                                                                                
   std::vector<double> c_star(nb_spot, 0.0);
   std::vector<double> d_star(nb_spot, 0.0);                                                                                                                                                    
-  c_star[0] = lower_diag[0] / mid_diag[0];
+  c_star[0] = lower_diag2[0] / mid_diag[0];
   d_star[0] = f_n1[0] / mid_diag[0];
 
   //forward sweep                                                                                                                                                  
-  for (int i=1; i<nb_spot-1; i++) {
-    double m = 1.0 / (mid_diag[i] - upper_diag[i] * c_star[i-1]);
-    c_star[i] = lower_diag[i] * m;
-    d_star[i] = (f_n1[i] - upper_diag[i] * d_star[i-1]) * m;
+  for (int i=1; i<nb_spot; i++) {
+    double m = 1.0 / (mid_diag[i] - upper_diag2[i] * c_star[i-1]);
+    c_star[i] = lower_diag2[i] * m;
+    d_star[i] = (f_n1[i] - upper_diag2[i] * d_star[i-1]) * m;
   }
+  
+  f_sol.back() = (d_star.back() - lower_diag2.back()*d_star[nb_spot-2]) / (mid_diag.back() - lower_diag2.back()*upper_diag2.back());
 
   //reverse sweep, used to update the solution vector f                                                                                                                                                 
   for (int i=nb_spot-1; i-- > 0; ) {
