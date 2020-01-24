@@ -10,48 +10,60 @@
 
 namespace project{
 	
-	class bound_conditions {
-	public: // all virtuals ? and we have all through neumann et/ou derichtlet ? 
+// boundaries class
 	
-	bound_conditions(){};
-	virtual std::vector<double> operator() bounds(mesh grid, parameters param, Payoff* option, std::vector<double> K_neuman ={0,0,0,0}) = 0;
-	//the vector containing the neuman coef is passed as an optional parameters to avoid creating a new overload for neuman. Pas certain
-	// que ce soit la meilleure solution on peut peut-être faire différement ? 
-	//to be updated with payoff class from Julien 
-	~bound_conditions();
+	class bound_conditions 
+	{
+		public:
+		
+			bound_conditions(mesh _grid);
+			
+			//std::vector<double> cond() const;
+			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option);
+			 //std::vector<double>  cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
+		
+		protected:
+		
+			mesh m_grille;
+			//Parameters m_param;
 	
-	const std::vector<double> get_upper_border();
-	const std::vector<double> get_lower_border();
-	
-	std::vector<double>  boundaries_compute(mesh grid, parameters param, Payoff* option, bound_conditions*bound_func, std::vector<double> K_neuman ={0,0,0,0});
-	//this function takes the same parameters as the bound_conditions + the type of boundaries we want to compute and will return the appropriate boundaries.
+		//private:
+		
+		//std::vector<std::vector<double>> Matrix_conditions;
+			
+	};
+	class Derichtlet: public bound_conditions 
+	{
+		
+		public:
+		
+			Derichtlet(const mesh& m_grid, const std::vector<double>& rate);
+			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
+			 std::vector<double> get_cond() const;
 
-	private:
-	
-	std::vector<double> upper_conditions;
-	std::vector<double> lower_conditions;
+			std::vector<double> matrix_derichtlet;
+			
+		//std::vector<double> K_neuman; 
 		
 	};
 	
-	class Neumann public bound_conditions {
-		
-	neumann_conditions();
-		
-	virtual std::vector<double> operator() neumann(mesh grid, parameters param, Payoff* option,std::vector<double> K_neuman ={0,0,0,0});
-		
 	
-	}
-	
-	class Derichtlet public bound_conditions {
-	
-	Derichtlet_conditions();
-	virtual std::vector<double> operator() derichtlet(mesh grid, parameters param, Payoff* option,std::vector<double> K_neuman ={0,0,0,0});
+	class Neumann: public bound_conditions 
+	{
 		
+		public:
 		
+			Neumann(mesh m_grid, double theta, std::vector<double> sigma, std::vector<double> rate,std::vector<double>& const_vector);
+			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
+			 std::vector<double> get_cond() const;
+
+			std::vector<double> matrix_neumann;
+			
+		//std::vector<double> K_neuman; 
 		
-		
-		
-	}
+	};
 		
 }
 
