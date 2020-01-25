@@ -1,16 +1,16 @@
-#include <iostream>
-#include "closed_form.hpp"
+
+//#include "closed_form.hpp"
+#include "Resolve.hpp"
+#include "mesh_spot.hpp"
+#include "vol.hpp"
+#include "bound_conditions.hpp"
+#include "payoff.hpp"
+#include "Greeks.hpp"
 #include <vector>
-//#include "Resolution.hpp"
+#include <iostream>
 #include <cmath>
-//Allows to create and manipulate xarrays
-// #include "xtensor/xarray.hpp"
-// #include "xtensor/xio.hpp"
-// #include "xtensor/xview.hpp"
-// #include "xtensor/xadapt.hpp"
-// #include "xtensor/xeval.hpp"
-// // Allows to perform linear algebra operations on xarrays
-// #include "xtensor-blas/xlinalg.hpp"
+#include <limits>
+
 
 
 ////
@@ -19,14 +19,14 @@ int main(int argc, char* argv[])
 	// Create the option parameters
 	double S = 100;
 	double K = 100;  // Strike price
-	double r = 0.0;   // Risk-free rate (5%)
+	double r = 0.05;   // Risk-fr ee rate (5%)
 	double v = 0.2;    // Volatility of the underlying (20%)
 	double T = 1.00;    // One year until expiry
 	double theta_ = 0.5;
 	
 	// mesh discretisation parameters
-	long nb_step_spot =50;    // Spot goes from [0.0, 1.0]
-	long nb_step_time = 10; 
+	long nb_step_spot =80;    // Spot goes from [0.0, 1.0]
+	long nb_step_time =30; 
 	
 	
 	// Create the PayOff object (strike as parameter)
@@ -43,9 +43,9 @@ int main(int argc, char* argv[])
 	long _t_ = grille.Getvector_time().size();
 	std::vector<double> sigma(s,v);
 	std::vector<double> rate(s,r);
-	std::vector<double> K_v{0.1,0.1,0.1,0.1};
+	//std::vector<double> K_v{0.1,0.1,0.1,0.1};
 	Derichtlet c(grille, rate);
-	Neumann c2(grille, theta_, sigma, rate,K_v);
+	Neumann c2(grille, theta_, sigma, rate);
 	
 	//std::cout<< "size is" << c2.get_cond().size() << std::endl;
 	//print(c2.get_cond());
@@ -122,6 +122,10 @@ int main(int argc, char* argv[])
 	init_f.pop_back();
 	 
 	B = sol.BX_vector(up_B,mid_B,low_B,cond_test,init_f);
+	
+	std::cout <<"neumann coef" << std::endl;
+	
+	//print(c2.get_coef_neumann());
 	
 	//print(B);
 	

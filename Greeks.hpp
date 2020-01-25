@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "mesh_spot.hpp"
+#include "bound_conditions.hpp"
 
 class Greeks
 {

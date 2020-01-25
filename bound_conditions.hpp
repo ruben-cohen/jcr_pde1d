@@ -1,22 +1,24 @@
 
-
-
 #ifndef BOUND_CONDITIONS_HPP
-#define 
-#include <vector>
+#define BOUND_CONDITIONS_HPP
+#include "mesh_spot.hpp"
+#include<cmath>
+#include<vector>
+#include<algorithm>
+#include <limits>
 
 // we create a boundaries conditions class that is purely virtual and 2 other classes neumann and derichtlet
 
-
-namespace project{
-	
 // boundaries class
 	
-	class bound_conditions 
+	
+class bound_conditions 
 	{
 		public:
 		
 			bound_conditions(mesh _grid);
+			
+			//~bound_conditions();
 			
 			//std::vector<double> cond() const;
 			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option);
@@ -32,6 +34,28 @@ namespace project{
 		//std::vector<std::vector<double>> Matrix_conditions;
 			
 	};
+	
+	
+	class Neumann: public bound_conditions 
+	{
+		
+		public:
+	
+		 Neumann(const mesh& m_grid, const double& theta, const std::vector<double>& sigma, const std::vector<double>& rate);
+			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
+			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
+			 std::vector<double> get_cond() const;
+			 std::vector<double> get_coef_neumann() const;
+
+			std::vector<double> matrix_neumann;
+			std::vector<double> coef_neumann;
+			
+	 //~Neumann();
+			
+		//std::vector<double> K_neuman; 
+		
+	};
+
 	class Derichtlet: public bound_conditions 
 	{
 		
@@ -44,28 +68,10 @@ namespace project{
 
 			std::vector<double> matrix_derichtlet;
 			
-		//std::vector<double> K_neuman; 
 		
 	};
 	
 	
-	class Neumann: public bound_conditions 
-	{
-		
-		public:
-		
-			Neumann(mesh m_grid, double theta, std::vector<double> sigma, std::vector<double> rate,std::vector<double>& const_vector);
-			//virtual std::vector<std::vector<double>>  operator() (PDE _payoff, mesh grid, Parameters param, PayOff* option,std::vector<double>& K_neuman);
-			 //std::vector<double> cond(PDE _payoff, mesh grid, Parameters param, PayOff* option);
-			 std::vector<double> get_cond() const;
-
-			std::vector<double> matrix_neumann;
-			
-		//std::vector<double> K_neuman; 
-		
-	};
-		
-}
 
 
 #endif 

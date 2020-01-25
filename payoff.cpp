@@ -1,13 +1,19 @@
-#ifndef PAY_OFF_CPP
-#define PAY_OFF_CPP
 
 #include "payoff.hpp"
+#include <cmath>
+#include <limits>
+#include<vector>
+#include <algorithm>
 
-namespace projet
-{
+
+//Payoff Class
+	//The payoff class is an abstract class
+	//The cla ss PayOffCall inherits from payoff, here to price a Call option
+	//Regarding parameters, we only need a strike price to define the payoff
 	
 	//Constructor 
-	PayOffCall::PayOffCall(const double& K)
+	//Constructor 
+PayOffCall::PayOffCall(const double& K)
 	:
 	 m_K(K)
 	{
@@ -18,5 +24,4 @@ namespace projet
 	{
 		return std::max(S-m_K*df, 0.0); // Call payoff
 	};
-}
-#endif
+

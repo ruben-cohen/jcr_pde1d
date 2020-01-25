@@ -1,14 +1,10 @@
 
-#include 'mesh_spot.hpp'
+#include "mesh_spot.hpp"
 #include <vector>
 #include <cmath>
+#include <limits>
 
 
-
-namespace project{
-	
-	
-	//This class builds the mesh, giving dt, dS, and the axes of the mesh as output
 	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const long& steps,PayOff* _option)
 	:
 	 option(_option),
@@ -88,5 +84,52 @@ namespace project{
 	
 	//Destructor
 	mesh::~mesh() {};
-}
+    void print(const std::vector<double>& v)
+    {
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            std::cout << v[i] << ","; 
+        }
+        std::cout << std::endl;
+    };
+
+	std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_init, double nb_rows){
+	
+	double endv; 
+	//std::vector<double> upper_bound(vector_init);
+	//std::vector<double> lower_bound(vector_init);
+	
+	
+	 
+	 if (vector_init.size()%2==0){endv=vector_init.size()/2;}
+	 else {endv=std::floor(vector_init.size()/2) -1;}; //case useless !
+	 
+	 std::vector<double> upper_bound(endv);
+	 std::vector<double> lower_bound(endv);
+	 
+	 std::copy(vector_init.begin(), vector_init.begin() + endv , upper_bound.begin());
+	 
+	 std::copy(vector_init.begin() + endv, vector_init.end(), lower_bound.begin());
+	 
+	 
+	std::vector<double> row_0(upper_bound.size(), 0.0);
+	 
+	std::vector<std::vector<double>> matrix;
+	
+	matrix.resize(nb_rows, std::vector<double>(upper_bound.size()));
+	
+	matrix.front() = upper_bound;
+	
+	//std::cout << "row 0 size " << row_0.size() <<  "up size " << upper_bound.size() <<  "low size " << lower_bound.size() << std::endl;
+	
+	for(int i=1; i<nb_rows-1; i++){
+		
+		
+		matrix[i] = row_0;
+	};
+	
+	matrix.back() = lower_bound;
+	 
+	return matrix;		
+	}
 	

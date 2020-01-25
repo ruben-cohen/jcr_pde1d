@@ -3,12 +3,20 @@
 #ifndef mesh_spot_HPP
 #define mesh_spot_HPP
 
+#include "payoff.hpp"
 #include <vector>
+#include <cmath>
+#include <limits>
 
 
-namespace project
-{
-	class mesh
+// Mesh Class	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mesh Class
+	//This class builds the mesh, giving dt, dS, and the axes of the mesh as output
+
+
+
+class mesh
 	{
 	
 	public: 
@@ -38,6 +46,10 @@ namespace project
 		std::vector<double> m_init_vector;
 		
 	};
-}
+	
+//Method to print vector content
+void print(const std::vector<double>& v);
+//Method to transform the vector boundaries into matrix for resolution;
+std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_init, double nb_rows);
 
 #endif

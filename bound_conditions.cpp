@@ -1,20 +1,15 @@
 
+#include "bound_conditions.hpp"
+#include<cmath>
+#include<vector>
+#include<algorithm>
+#include <limits>
+#include <iostream>
 
-#include 'bound_conditions.hpp'
-#include<math>
-#include 'payoff.hpp'
-#include 'mesh_spot.hpp"
-
-
-//Boundaries	
-	
-//Boundaries	
-	
-	bound_conditions::bound_conditions(mesh _grid)
-	:
-	 m_grille(_grid)
-	 //,m_param(_param)
-	 {};
+bound_conditions::bound_conditions(mesh _grid)
+	:m_grille(_grid){};
+	 
+	 //bound_conditions::~bound_conditions(){};
 	 
 	
 	Derichtlet::Derichtlet(const mesh& m_grid,const std::vector<double>& rate)
@@ -57,7 +52,7 @@
         {
 			df = exp(-rate[i]*(T-dt*i));
 			matrix_derichtlet[i] = m_grid.init_cond(exp(spot_min),df); // for here
-			matrix_derichtlet[size_vec+i] = m_grid.init_cond(exp(exp(spot_max),df);;
+			matrix_derichtlet[size_vec+i] = m_grid.init_cond(exp(spot_max),df);;
         }
 	};
 	
@@ -66,17 +61,46 @@
 		return matrix_derichtlet;
 	};
 	
-	Neumann::Neumann(mesh m_grid, double theta, std::vector<double> sigma, std::vector<double> rate,std::vector<double>& const_vector)
-	:bound_conditions(m_grille)
-	{
+	Neumann:Neumann(const mesh& m_grid, const double& theta, const std::vector<double>& sigma, const std::vector<double>& rate)
+	:bound_conditions(m_grid){
 		//From mesh object
 		double dt = m_grid.getdt();
 		double dx = m_grid.getdx(); //need the stock step 
 		size_t size_vec = m_grid.Getvector_time().size();
 		double maturity = m_grid.Getvector_time().back();
 		double S0 = m_grid.get_Spot();
-		size_t size_spot = m_grid.Getvector_stock().size();		
+		size_t size_spot = m_grid.Getvector_stock().size();	
+		double S_min = m_grid.Getvector_stock()[0]; 
+		double S_max = m_grid.Getvector_stock().back(); 
 		
+		double h =0.00001;
+		double df_der = 1.0;
+		
+		double K1 = (m_grid.init_cond(exp(S_min +h),df_der) - m_grid.init_cond(exp(S_min -h),df_der))/(2*h);
+		
+		//std::cout<< K1 <<std::endl;
+		
+		double K3 = (m_grid.init_cond(exp(S_max +h),df_der) - m_grid.init_cond(exp(S_max -h),df_der))/(2*h);
+		
+		//std::cout<< K3 <<std::endl;
+		
+		double K2 = (m_grid.init_cond(K1+h,df_der) - m_grid.init_cond(K1-h,df_der))/(2*h);
+		
+		//std::cout<< K2 <<std::endl;
+		
+		
+		double K4 = (m_grid.init_cond(K3+h,df_der) - m_grid.init_cond(K3 -h,df_der))/(2*h);
+		
+		//std::cout<< K4 <<std::endl;
+		
+		std::vector<double> coef;
+		
+		coef.push_back(K1);
+		coef.push_back(K2);
+		coef.push_back(K3);
+		coef.push_back(K4);
+		
+		std::vector<double> coef_neumann(coef);
 		//From parametre object
 		//double sigma = m_param.Get_Vol(); //to get the volatility 
 		//double rate = m_param.Get_Rate(); //the get the rate 
@@ -97,13 +121,16 @@
 		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
-		double f_0_T = _init_cond[0];
-		double f_N_T = _init_cond.back();
+		double spot_min = m_grid.Getvector_stock()[0];
+		double df = exp(-rate.back()*maturity);
+		double spot_max = m_grid.Getvector_stock().back();
+		double f_0_T = m_grid.init_cond(exp(spot_min),df);
+		double f_N_T = m_grid.init_cond(exp(spot_max),df);
 		
-	    double K1 = const_vector[0];
-	    double K2 = const_vector[1];
-	    double K3 = const_vector[2];
-	    double K4 = const_vector[3];
+	    //double K1 = const_vector[0];
+	    //double K2 = const_vector[1];
+	    //double K3 = const_vector[2];
+	    //double K4 = const_vector[3];
 		   
 		double coef_; 
 		double coef_K1_K2; 
@@ -129,18 +156,26 @@
 					coef_K3_K4 = -dt*((-std::pow(sigma[it],2)*K3)/2 + (std::pow(sigma[it],2)/2 - rate[it])*K4)/(1+ dt*theta*rate[it]);
 					
 					
-			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2)*exp(-rate[it]*dt*it);
+			  matrix_neumann[it]  = (coef_*matrix_neumann[it-1] + coef_K1_K2);
 			
-			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4)*exp(-rate[it]*dt*it);
+			  matrix_neumann[tt] = (coef_*matrix_neumann[tt-1] + coef_K3_K4);
 		 }
-		 
 	};
 	
     std::vector<double> Neumann::get_cond() const
 	{
 		return matrix_neumann;
 	};
-/////////////////////////////////////////////////
 	
+	std::vector<double> Neumann::get_coef_neumann() const
+	{
+		return coef_neumann;
+	};
+	
+	//Neumann::~Neumann(){};
+			
+	
+	
+
 	
 	
