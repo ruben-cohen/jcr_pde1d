@@ -348,23 +348,42 @@
     
 \section*{Determination of the greeks}
     
-Now that we have computed the option value at each point of the grid, we can compute the greeks at time t=0 using the following formulas:  
+Now that we have computed the option value at each point of the grid (in particular at time t=0 and t=1), we can compute an approximation of the option greeks at time t=0 using the following formulas:  
 \\
 \\
-$\bullet$ \textbf{Delta of the option (forward difference approximation):} 
+$\bullet$ \textbf{Delta of the option (central difference approximation):} 
+\\
+\\
+The use of the central difference approximation is more accurate than either the forward or backward difference. In particular, its error is $\mathcal{O}(dx^{2})$.
 \begin{equation*}
-\forall i \in \{1,...,N-1\},     \delta^{0}_{i} = \frac{f^{0}_{i+1} - f^{0}_{i}}{dx} 
+\forall i \in \{1,...,N-1\},     \delta^{0}_{i} = \frac{f^{0}_{i+1} - f^{0}_{i-1}}{2dx} 
 \end{equation*} 
 \\
-$\bullet$ \textbf{Gamma of the option (central difference approximation):} 
+$\bullet$ \textbf{Gamma of the option (central difference approximation):}
+\\
+\\
+The error in this approximation is also $\mathcal{O}(dx^{2})$.
 \begin{equation*}
-\forall i \in \{1,...,N-1\},     \gamma^{0}_{i} = \frac{f^{0}_{i+1} - 2.f^{0}_{i} + f^{0}_{i-1}}{dx^{2}} 
+\forall i \in \{1,...,N-1\},     \gamma^{0}_{i} = \frac{f^{0}_{i+1} - 2f^{0}_{i} + f^{0}_{i-1}}{dx^{2}} 
 \end{equation*} 
 \\
 $\bullet$ \textbf{Theta of the option (forward difference approximation):} 
+\\
+\\
+The forward difference approximation is the usual approximation of theta in the Crank-Nicolson scheme.
 \begin{equation*}
-\forall i \in \{1,...,N-1\},     \theta^{0}_{i} = \frac{f^{0}_{i+1} - f^{0}_{i}}{dt} 
+\forall i \in \{1,...,N-1\},     \theta^{0}_{i} = \frac{f^{1}_{i} - f^{0}_{i}}{dt} 
 \end{equation*}  
+\\
+$\bullet$ \textbf{Management of the boundary conditions:}
+\\
+\\
+- In the case of Dirichlet boundary conditions, the user inputs constant boundary values. Thus we consider a null value for the derivative of the option price on each point of these boundaries. We then assume a null Delta, Gamma and Theta on these boundaries.
+\\
+\\
+- In the case of Neumann boundary conditions, the user inputs K1, K2, K3, K4 which represent the first and second derivative of the option price with respect to x on each point of the boundaries. We then simply consider these values as Delta and Gamma on the boundaries.
+On the other hand, we compute theta on the boundaries with a forward difference approximation formula, as if it was a regular point of the grid.
+\\
 \\
 $\bullet$ \textbf{Approach for computing the Vega of the option:} 
 \\
@@ -374,8 +393,7 @@ A simple approach to compute the Vega of the option would then be to compare its
 Then we could obtain the Vega of the option using the following formula:
 \begin{equation*}
 \forall \epsilon > 0, 
-\forall i \in \{1,...,N-1\},      
+\forall i \in \{0,...,N\},      
 \vartheta^{0}_{i} = \frac{f^{0}_{i+1}(\sigma + \epsilon) - f^{0}_{i}(\sigma)}{\epsilon} 
 \end{equation*} 
 \end{document}
-
