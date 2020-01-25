@@ -3,8 +3,9 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <iostream>
 
-
+namespace project{
 	mesh::mesh(const double& spot, const double& maturity,const double& volatility, const long& time_step, const long& steps,PayOff* _option)
 	:
 	 option(_option),
@@ -131,5 +132,6 @@
 	matrix.back() = lower_bound;
 	 
 	return matrix;		
-	}
+	};
+}
 	

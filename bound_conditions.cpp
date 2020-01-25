@@ -6,6 +6,8 @@
 #include <limits>
 #include <iostream>
 
+
+namespace project{
 bound_conditions::bound_conditions(mesh _grid)
 	:m_grille(_grid){};
 	 
@@ -24,18 +26,6 @@ bound_conditions::bound_conditions(mesh _grid)
 		double maturity = m_grid.Getvector_time().back();
 		double S0 = m_grid.get_Spot();
 		size_t size_spot = m_grid.Getvector_stock().size();
-		
-/* 		if(size_spot != rate.size()){
-			
-			std::cout<< "size of sigma is" << rate.size() << "size of spot is" << size_spot << std::endl;
-		}
-		else{ std::cout<< "okay for Derichtlet" << std::endl;}; */
-		
-		//From parametre object
-		//double sigma = m_param.Get_Vol(); //to get the volatility 
-		//double rate = m_param.Get_Rate(); //the get the rate 
-		//double theta = m_param.Get_Theta(); //to get the theta 
-		//double r = m_param.Get_Rate();
 		
 		//From PDE object
 		double spot_max = m_grid.Getvector_stock().back();
@@ -61,7 +51,7 @@ bound_conditions::bound_conditions(mesh _grid)
 		return matrix_derichtlet;
 	};
 	
-	Neumann:Neumann(const mesh& m_grid, const double& theta, const std::vector<double>& sigma, const std::vector<double>& rate)
+	Neumann::Neumann(const mesh& m_grid, const double& theta, const std::vector<double>& sigma, const std::vector<double>& rate)
 	:bound_conditions(m_grid){
 		//From mesh object
 		double dt = m_grid.getdt();
@@ -93,31 +83,18 @@ bound_conditions::bound_conditions(mesh _grid)
 		
 		//std::cout<< K4 <<std::endl;
 		
-		std::vector<double> coef;
+		//std::vector<double> coef;
 		
-		coef.push_back(K1);
-		coef.push_back(K2);
-		coef.push_back(K3);
-		coef.push_back(K4);
 		
-		std::vector<double> coef_neumann(coef);
-		//From parametre object
-		//double sigma = m_param.Get_Vol(); //to get the volatility 
-		//double rate = m_param.Get_Rate(); //the get the rate 
-		//double theta = m_param.Get_Theta(); //to get the theta 
-		//double r = m_param.Get_Rate();
+		coef_neumann.push_back(K1);
+		coef_neumann.push_back(K2);
+		coef_neumann.push_back(K3);
+		coef_neumann.push_back(K4);
 		
-/* 		if(size_spot != sigma.size()){
-			
-			std::cout<< "size of sigma is" << sigma.size() << "size of spot is" << size_spot << std::endl;
-		}
-		else{ std::cout<< "okay for neumann" << std::endl;};
 		
-		if(size_spot != rate.size()){
-			
-			std::cout<< "size of rate is" << rate.size() << "size of spot is" << size_spot << std::endl;
-		}
-		else{ std::cout<< "okay for neumann" << std::endl;}; */
+		
+		//print(coef);
+		//print(coef_neumann);
 		
 		//From PDE object
 		std::vector<double>  _init_cond = m_grid.get_init_vector(); //get the terminal condition vector to get f(S0,T) and f(Smax,T)
@@ -126,11 +103,6 @@ bound_conditions::bound_conditions(mesh _grid)
 		double spot_max = m_grid.Getvector_stock().back();
 		double f_0_T = m_grid.init_cond(exp(spot_min),df);
 		double f_N_T = m_grid.init_cond(exp(spot_max),df);
-		
-	    //double K1 = const_vector[0];
-	    //double K2 = const_vector[1];
-	    //double K3 = const_vector[2];
-	    //double K4 = const_vector[3];
 		   
 		double coef_; 
 		double coef_K1_K2; 
@@ -162,6 +134,8 @@ bound_conditions::bound_conditions(mesh _grid)
 		 }
 	};
 	
+	
+	
     std::vector<double> Neumann::get_cond() const
 	{
 		return matrix_neumann;
@@ -175,7 +149,7 @@ bound_conditions::bound_conditions(mesh _grid)
 	//Neumann::~Neumann(){};
 			
 	
-	
+}	
 
 	
 	

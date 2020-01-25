@@ -4,6 +4,7 @@
 #include <limits>
 #include<vector>
 #include <algorithm>
+#include <iostream>
 
 
 //Payoff Class
@@ -13,6 +14,8 @@
 	
 	//Constructor 
 	//Constructor 
+	
+namespace project {
 PayOffCall::PayOffCall(const double& K)
 	:
 	 m_K(K)
@@ -25,3 +28,4 @@ PayOffCall::PayOffCall(const double& K)
 		return std::max(S-m_K*df, 0.0); // Call payoff
 	};
 
+}

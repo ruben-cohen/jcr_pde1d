@@ -1,31 +1,29 @@
 
 #include "Resolve.hpp"
+#include <iostream>
 #include <vector>
 #include <cmath>
 #include <limits>
 
 
- solver::solver(mesh grid, std::vector<std::vector<double>> res):m_mesh(grid),m_results(res){};
+namespace project{
+
  
- void solver::solve_X(mesh grid, double theta, const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat,std::vector<std::vector<double>> rate_mat)
+ solver::solver(mesh grid, double theta, const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat,std::vector<std::vector<double>> rate_mat)
+ :m_mesh(grid)
  {
-	 
-	 
-	 std::vector<std::vector<double>> results;
+	
 	 std::vector<std::vector<double>> vol(vol_mat);
 	 std::vector<std::vector<double>> rate(rate_mat);
 	 long T = grid.Getvector_time().size(); 
 	 std::size_t m = grid.Getvector_stock().size();
 	 std::vector<double> init_f = grid.get_init_vector(); // get the initial X_T
 	 
-	 
-	 
 	 init_f.erase(init_f.begin());
 	 init_f.pop_back();
 	 
 	 std::vector<std::vector<double>> matrix_boundaries = transform_matrix(boundaries,m-2); //get the boundaries matrix 
 	 std::vector<double> cond_diff(m-2);
-	 std::vector<double> solution_vector(m-2, 0.0); //init of the solution vector 
 	 std::vector<double> up_A;
 	 std::vector<double> low_A;
 	 std::vector<double> mid_A;
@@ -33,11 +31,12 @@
 	 std::vector<double> low_B;
 	 std::vector<double> mid_B;
 	 
-	 std::cout << "price at time T" << std::endl;
+	 //std::cout << "price at time T" << std::endl;
 	 
-	 print(init_f);
+	 //print(init_f);
+	  std::vector<double> solution_vector(init_f); //init of the solution vector 
 	 
-	 solver solver(grid, results);
+	 //solver solver(grid, results);
 	 
 	 double BetaN = 1;
 	 double BetaN1 = 1;
@@ -45,15 +44,14 @@
 	 double AlphaN1 = 1;
 	 
 	 	 //initialisation de la matrice B à maturité 
-	 up_B = solver.Upper_diag_coeff(grid,false,theta,vol.back(), rate.back());
-	 low_B = solver.Lower_diag_coeff(grid,false,theta,vol.back(), rate.back());
-	 mid_B = solver.Mid_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 up_B = Upper_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 low_B = Lower_diag_coeff(grid,false,theta,vol.back(), rate.back());
+	 mid_B = Mid_diag_coeff(grid,false,theta,vol.back(), rate.back());
 	 
-	up_A = solver.Upper_diag_coeff(grid,true,theta,vol.back(), rate.back());
-	low_A = solver.Lower_diag_coeff(grid,true,theta,vol.back(), rate.back());
-	mid_A = solver.Mid_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	up_A = Upper_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	low_A = Lower_diag_coeff(grid,true,theta,vol.back(), rate.back());
+	mid_A = Mid_diag_coeff(grid,true,theta,vol.back(), rate.back());
 	
-	std::cout << "test" << std::endl;
 	 
 	 for(size_t s = 0; s<m-2; ++s)
 	 {
@@ -61,7 +59,7 @@
 		 if(s==0){
 			 
 			 BetaN = low_A[0];
-
+				
 			 BetaN1 = low_B[0];
 			 
 			 cond_diff[s] = BetaN1*matrix_boundaries[s].back()-BetaN*matrix_boundaries[s][T-1];
@@ -75,32 +73,25 @@
 			 
 		 }
 		 
-		 //cond_diff[s] = matrix_boundaries[s].back()-matrix_boundaries[s][T-1];
 		 
 		 else{cond_diff[s] =0;};
 	 }; //initialisation du vecteur de C(n+1) - C(n) 
 	 
-	 
-
-	 
-
-	std::vector<double> B = solver.BX_vector(up_B,mid_B,low_B,cond_diff,init_f);
-
-	rate.pop_back();
-	vol.pop_back();
+	
+	std::vector<double> B = BX_vector(up_B,mid_B,low_B,cond_diff,init_f);
 	 
 	 
 	 for(int i = grid.Getvector_time().size() - 1; i != 0; --i)
 	 {
-		 
-		
-		up_A = solver.Upper_diag_coeff(grid,true,theta,vol.back(), rate.back());
-		low_A = solver.Lower_diag_coeff(grid,true,theta,vol.back(), rate.back());
-		mid_A = solver.Mid_diag_coeff(grid,true,theta,vol.back(), rate.back());
+
+		m_results.insert(m_results.begin(),solution_vector);
+		up_A = Upper_diag_coeff(grid,true,theta,vol.back(), rate.back());
+		low_A = Lower_diag_coeff(grid,true,theta,vol.back(), rate.back());
+		mid_A = Mid_diag_coeff(grid,true,theta,vol.back(), rate.back());
 			
-		solver.thomas_algorithm(up_A, mid_A, low_A, B, solution_vector);
+		thomas_algorithm(up_A, mid_A, low_A, B, solution_vector);
 		
-		results.push_back(solution_vector); //create a matrix containing all the prices computed by the solver in order to be displayed afterwards
+		 //create a matrix containing all the prices computed by the solver in order to be displayed afterwards
 		
 		
 		for(size_t s = 0; s<m-2; ++s){
@@ -121,30 +112,26 @@
 			 cond_diff[s] = AlphaN1*matrix_boundaries[s][i]-AlphaN*matrix_boundaries[s][i-1];
 			 
 		 }
-		 //cond_diff[s] = matrix_boundaries[s][i]-matrix_boundaries[s][i-1];
 		 else{ cond_diff[s] =0;};
-			 }; 
-			 
-			 
-		//init_f = solution_vector;
+	     }; 
 		
-		std::cout << "price at time " << i-1 << " is " << std::endl;
+		//std::cout << "price at time " << i-1 << " is " << std::endl;
 		
-		print(solution_vector);
+		//print(solution_vector);
 		
-		up_B = solver.Upper_diag_coeff(grid, false,theta,vol.back(), rate.back());
-	    low_B = solver.Lower_diag_coeff(grid, false,theta,vol.back(), rate.back());
-		mid_B = solver.Mid_diag_coeff(grid, false,theta,vol.back(), rate.back());
+		up_B = Upper_diag_coeff(grid, false,theta,vol.back(), rate.back());
+	    low_B = Lower_diag_coeff(grid, false,theta,vol.back(), rate.back());
+		mid_B = Mid_diag_coeff(grid, false,theta,vol.back(), rate.back());
 	 
-	 
-	    B = solver.BX_vector(up_B,mid_B,low_B,cond_diff,solution_vector);
+		
+	    B = BX_vector(up_B,mid_B,low_B,cond_diff,solution_vector);
 		
 		rate.pop_back();
 		vol.pop_back();
 		
 		 
 	 }; 
-	  
+
  }; 
  
 std::vector<std::vector<double>> solver::get_price(){
@@ -310,17 +297,17 @@ void solver::thomas_algorithm(const std::vector<double>& upper_diag, const std::
                                                                                                                                                                                                                                                                                                                                                  
   std::vector<double> c_star(nb_spot, 0.0);
   std::vector<double> d_star(nb_spot, 0.0);                                                                                                                                                    
-  c_star[0] = lower_diag2[0] / mid_diag[0];
+  c_star[0] = upper_diag2[0] / mid_diag[0];
   d_star[0] = f_n1[0] / mid_diag[0];
 
   //forward sweep                                                                                                                                                  
   for (int i=1; i<nb_spot; i++) {
-    double m = 1.0 / (mid_diag[i] - upper_diag2[i] * c_star[i-1]);
-    c_star[i] = lower_diag2[i] * m;
-    d_star[i] = (f_n1[i] - upper_diag2[i] * d_star[i-1]) * m;
+    double m = 1.0 / (mid_diag[i] - lower_diag2[i] * c_star[i-1]);
+    c_star[i] = upper_diag2[i] * m;
+    d_star[i] = (f_n1[i] - lower_diag2[i] * d_star[i-1]) * m;
   }
   
-  f_sol.back() = (d_star.back() - lower_diag2.back()*d_star[nb_spot-2]) / (mid_diag.back() - lower_diag2.back()*upper_diag2.back());
+  f_sol.back() = (f_n1.back() - lower_diag2.back()*d_star[nb_spot-2]) / (mid_diag.back() - lower_diag2.back()*c_star[nb_spot-2]);
 
   //reverse sweep, used to update the solution vector f                                                                                                                                                 
   for (int i=nb_spot-1; i-- > 0; ) {
@@ -328,5 +315,6 @@ void solver::thomas_algorithm(const std::vector<double>& upper_diag, const std::
   }
 }; 
 
-
 solver::~solver(){}; 
+
+}

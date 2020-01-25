@@ -23,6 +23,18 @@ endif()
 set(PDE_SOLVER_SRCS
     closed_form.hpp
     closed_form.cpp
+    Resolve.hpp
+    Resolve.cpp
+    mesh_spot.hpp
+    mesh_spot.cpp
+    payoff.hpp
+    payoff.cpp
+    Vol.cpp
+    vol.hpp
+    bound_conditions.cpp
+    bound_conditions.hpp
+    Greeks.cpp
+    Greeks.hpp
     main.cpp)
 
 set(PDE_SOLVER_TARGET pde_solver)
