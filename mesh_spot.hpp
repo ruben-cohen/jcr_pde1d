@@ -7,7 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
-
+#include <iostream>
 
 // Mesh Class	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,7 @@
 	//This class builds the mesh, giving dt, dS, and the axes of the mesh as output
 
 
+namespace project {
 
 class mesh
 	{
@@ -51,5 +52,5 @@ class mesh
 void print(const std::vector<double>& v);
 //Method to transform the vector boundaries into matrix for resolution;
 std::vector<std::vector<double>> transform_matrix(std::vector<double> vector_init, double nb_rows);
-
+}
 #endif

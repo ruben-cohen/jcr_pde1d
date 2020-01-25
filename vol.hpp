@@ -9,7 +9,7 @@
 
 #include "mesh_spot.hpp"
 
-
+namespace project {
 	class volatility 
 	{
 	
@@ -59,4 +59,5 @@
 		
 	
 	};
+}
 #endif

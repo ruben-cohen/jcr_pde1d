@@ -5,6 +5,8 @@
 
 //Classe de base
 	//Constructor
+	
+namespace project {
 	volatility::volatility(const double& v,const mesh& grid)
 	:
 	 m_init_vol(v),
@@ -69,3 +71,4 @@
 	};	
 
 
+}

@@ -7,17 +7,19 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <iostream>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace project{	
+	
 	class solver
 	{
 		public:
 		
-		solver(mesh grid, std::vector<std::vector<double>> res);
-		
-		void solve_X(mesh grid, double theta,const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat, std::vector<std::vector<double>> rate_mat); //constructor of the solver object
+		solver(mesh grid, double theta,const std::vector<double>& boundaries, std::vector<std::vector<double>> vol_mat, std::vector<std::vector<double>> rate_mat); //constructor of the solver object
 		
 		~solver(); //destructor of the solver object 
 		
@@ -43,4 +45,5 @@
 		//in each function we only need to input the grid and the parameters as we will get theta, sigma and r from parameters class 
 		// we will get dx and dt from grid class 
 	};
+}
 #endif

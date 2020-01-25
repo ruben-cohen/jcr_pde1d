@@ -3,8 +3,10 @@
 #include <algorithm> 
 #include<vector>
 #include <limits>
+#include <iostream>
 // Act on containers through iterators to apply modyfing/non_modifying operations
 
+namespace project {
 class PayOff 
 	{
 		 public:
@@ -38,4 +40,6 @@ class PayOff
 
 		 
 	};
+
+}
 #endif
