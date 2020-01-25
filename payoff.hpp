@@ -1,12 +1,11 @@
 #ifndef PAY_OFF_HPP
 #define PAY_OFF_HPP
+#include <algorithm> 
+#include<vector>
+#include <limits>
+// Act on containers through iterators to apply modyfing/non_modifying operations
 
-#include <algorithm> // Act on containers through iterators to apply modyfing/non_modifying operations
-
-namespace projet
-{
-//Payoff Class
-	class PayOff 
+class PayOff 
 	{
 		 public:
 			//Constructor
@@ -14,7 +13,7 @@ namespace projet
 			// Virtual destructor to avoid memory leaks when destroying the base and inherited classes
 			virtual ~PayOff() {}; 
 			// We turn the payoff into a functor, goal is to compute initial condition
-			virtual double operator() (const double& S,const double& df = 0) const = 0;
+			virtual double operator() (const double& S,const double& df = 1) const = 0;
 			//virtual double init_cond(const double& S)) const;
 	};
 	
@@ -39,5 +38,4 @@ namespace projet
 
 		 
 	};
-}
 #endif

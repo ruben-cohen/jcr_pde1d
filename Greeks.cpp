@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "Greeks.hpp"
 
+
 Greeks::Greeks(mesh grid, solver, Neumann, Derichtlet){
 
 double dt = grid.getdt(); //get the time step
